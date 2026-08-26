@@ -1,0 +1,155 @@
+.screen {
+  display: grid;
+  inline-size: min(100%, 34rem);
+  min-block-size: 100vh;
+  min-block-size: 100svh;
+  min-block-size: 100dvh;
+  margin-inline: auto;
+  padding: calc(var(--safe-top) + var(--space-6)) calc(var(--safe-right) + var(--content-gutter))
+    calc(var(--safe-bottom) + var(--space-6)) calc(var(--safe-left) + var(--content-gutter));
+  grid-template-rows: auto 1fr auto;
+  gap: var(--space-8);
+}
+
+.brand {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.mark {
+  display: grid;
+  inline-size: 3rem;
+  block-size: 3rem;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+}
+
+.mark svg {
+  inline-size: 1.55rem;
+  block-size: 1.55rem;
+  stroke-width: 2.5;
+}
+
+.brand > div:last-child {
+  display: grid;
+}
+
+.brand strong {
+  font-size: var(--text-lg);
+}
+
+.brand span,
+.selection p,
+.storageNote {
+  color: var(--color-text-secondary);
+}
+
+.brand span {
+  font-size: var(--text-sm);
+}
+
+.selection {
+  display: grid;
+  align-content: center;
+  gap: var(--space-8);
+}
+
+.selection h1 {
+  margin-block-end: var(--space-3);
+  font-size: var(--text-3xl);
+  letter-spacing: -0.045em;
+}
+
+.selection p {
+  margin: 0;
+}
+
+.profiles {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.profileButton {
+  inline-size: 100%;
+  padding: 0;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  text-align: start;
+  cursor: pointer;
+}
+
+.profileButton:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--space-4);
+  align-items: center;
+  transition: transform var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
+}
+
+.profileButton:active .card {
+  transform: scale(0.985);
+}
+
+.avatar {
+  display: grid;
+  inline-size: 3.5rem;
+  block-size: 3.5rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-size: var(--text-xl);
+  font-weight: 850;
+}
+
+.avatar[data-profile='geovanna'] {
+  background: var(--color-timer-soft);
+  color: var(--color-timer);
+}
+
+.profileCopy {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.profileCopy strong {
+  font-size: var(--text-lg);
+}
+
+.profileCopy span {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+}
+
+.profileCopy svg {
+  inline-size: 1rem;
+  block-size: 1rem;
+}
+
+.arrow {
+  color: var(--color-text-tertiary);
+}
+
+.storageNote {
+  margin: 0;
+  font-size: var(--text-xs);
+  text-align: center;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .profileButton:hover .card {
+    border-color: var(--color-border-strong);
+    transform: translateY(-2px);
+  }
+}

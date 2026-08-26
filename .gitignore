@@ -1,0 +1,14 @@
+node_modules/
+dist/
+dev-dist/
+coverage/
+work/
+outputs/
+.agents/
+.codex/
+.DS_Store
+*.local
+*.log
+.vite/
+playwright-report/
+test-results/

@@ -1,0 +1,111 @@
+.header {
+  margin-block-end: var(--space-6);
+}
+
+.header h1 {
+  margin-block-end: var(--space-2);
+}
+
+.header p,
+.consistency p,
+.exerciseProgress > p {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.metrics article {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.metrics svg {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  margin-block-end: var(--space-2);
+  color: var(--color-accent);
+}
+
+.metrics strong {
+  font-family: var(--font-numeric);
+  font-size: var(--text-xl);
+}
+
+.metrics span {
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+}
+
+.consistency,
+.exerciseProgress {
+  margin-block-start: var(--space-8);
+}
+
+.consistency > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  align-items: baseline;
+}
+
+.consistency h2,
+.exerciseProgress h2 {
+  margin-block-end: var(--space-3);
+  font-size: var(--text-lg);
+}
+
+.consistency > div:first-child span {
+  color: var(--color-accent);
+  font-family: var(--font-numeric);
+  font-weight: 800;
+}
+
+.track {
+  block-size: 0.6rem;
+  margin-block: var(--space-3);
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-muted);
+}
+
+.track span {
+  display: block;
+  block-size: 100%;
+  border-radius: inherit;
+  background: var(--color-accent);
+}
+
+.rows {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.rows article {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+.rows article > div {
+  display: grid;
+}
+
+.rows span {
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+}
+
+.best {
+  text-align: end;
+}
+
+.best strong {
+  color: var(--color-accent);
+  font-family: var(--font-numeric);
+}

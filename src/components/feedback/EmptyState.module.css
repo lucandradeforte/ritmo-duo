@@ -1,0 +1,52 @@
+.emptyState {
+  display: flex;
+  min-block-size: 18rem;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: clamp(var(--space-6), 8vw, var(--space-12)) var(--space-5);
+  text-align: center;
+}
+
+.emptyState[data-compact] {
+  min-block-size: 12rem;
+  padding-block: var(--space-6);
+}
+
+.icon {
+  display: grid;
+  inline-size: 3.5rem;
+  block-size: 3.5rem;
+  margin-block-end: var(--space-5);
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 24%, transparent);
+  border-radius: var(--radius-lg);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  transform: rotate(-4deg);
+}
+
+.icon svg {
+  inline-size: 1.65rem;
+  block-size: 1.65rem;
+  stroke-width: 2.15;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-xl);
+  letter-spacing: -0.025em;
+}
+
+.description {
+  max-inline-size: 26rem;
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+}
+
+.action {
+  inline-size: min(100%, 20rem);
+  margin-block-start: var(--space-5);
+}

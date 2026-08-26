@@ -1,0 +1,126 @@
+.navigation {
+  position: fixed;
+  z-index: 40;
+  inset: auto 0 0;
+  padding: 0 var(--safe-right) var(--safe-bottom) var(--safe-left);
+  border-block-start: 1px solid color-mix(in srgb, var(--color-border) 82%, transparent);
+  background: color-mix(in srgb, var(--color-canvas-raised) 92%, transparent);
+  box-shadow: 0 -16px 42px rgb(0 0 0 / 16%);
+  -webkit-backdrop-filter: blur(20px) saturate(130%);
+  backdrop-filter: blur(20px) saturate(130%);
+}
+
+.inner {
+  display: grid;
+  inline-size: min(100%, var(--content-max));
+  block-size: var(--bottom-nav-content-height);
+  margin-inline: auto;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.item {
+  position: relative;
+  display: flex;
+  min-inline-size: 0;
+  min-block-size: var(--touch-target);
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.35rem 0.15rem;
+  background: transparent;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition:
+    color var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
+}
+
+.item::after {
+  position: absolute;
+  inset: 0.25rem 0.15rem;
+  border-radius: var(--radius-md);
+  background: var(--color-accent-soft);
+  content: '';
+  opacity: 0;
+  transform: scale(0.82);
+  transition:
+    opacity var(--duration-normal) var(--ease-standard),
+    transform var(--duration-normal) var(--ease-standard);
+}
+
+.item[data-active] {
+  color: var(--color-accent);
+}
+
+.item[data-active]::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.item:focus-visible {
+  z-index: 1;
+  outline-offset: -3px;
+}
+
+.item:active {
+  transform: scale(0.95);
+}
+
+.iconWrap,
+.label {
+  position: relative;
+  z-index: 1;
+}
+
+.iconWrap {
+  display: grid;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  place-items: center;
+}
+
+.iconWrap svg {
+  inline-size: 1.35rem;
+  block-size: 1.35rem;
+  stroke-width: 2.1;
+}
+
+.label {
+  overflow: hidden;
+  max-inline-size: 100%;
+  font-size: var(--text-2xs);
+  font-weight: 680;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .item:hover:not([data-active]) {
+    color: var(--color-text-secondary);
+  }
+}
+
+@media (orientation: landscape) and (max-height: 31.25rem) {
+  .item {
+    gap: 0;
+  }
+
+  .label {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .iconWrap svg {
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
+  }
+}

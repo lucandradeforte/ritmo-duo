@@ -1,0 +1,53 @@
+.avatar {
+  --avatar-color: var(--color-accent);
+  --avatar-background: var(--color-accent-soft);
+
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--avatar-color) 32%, transparent);
+  border-radius: var(--radius-pill);
+  background: var(--avatar-background);
+  color: var(--avatar-color);
+  font-weight: 820;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.lime {
+  --avatar-color: var(--color-accent);
+  --avatar-background: var(--color-accent-soft);
+}
+
+.orange {
+  --avatar-color: var(--color-timer);
+  --avatar-background: var(--color-timer-soft);
+}
+
+.blue {
+  --avatar-color: var(--color-info);
+  --avatar-background: var(--color-info-soft);
+}
+
+.violet {
+  --avatar-color: var(--color-profile-violet);
+  --avatar-background: var(--color-profile-violet-soft);
+}
+
+.small {
+  inline-size: 2rem;
+  block-size: 2rem;
+  font-size: var(--text-xs);
+}
+
+.medium {
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  font-size: var(--text-sm);
+}
+
+.large {
+  inline-size: 4rem;
+  block-size: 4rem;
+  font-size: var(--text-xl);
+}

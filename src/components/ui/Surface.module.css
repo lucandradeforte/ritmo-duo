@@ -1,0 +1,60 @@
+.surface {
+  --surface-background: var(--color-surface);
+  --surface-border: var(--color-border);
+
+  border-radius: var(--radius-lg);
+  background: var(--surface-background);
+  box-shadow: var(--shadow-sm);
+}
+
+.outlined {
+  border: 1px solid var(--surface-border);
+}
+
+.tone-default {
+  --surface-background: var(--color-surface);
+}
+
+.tone-raised {
+  --surface-background: var(--color-surface-strong);
+  --surface-border: var(--color-border-strong);
+}
+
+.tone-muted {
+  --surface-background: var(--color-canvas-raised);
+  box-shadow: none;
+}
+
+.tone-accent {
+  --surface-background: var(--color-accent-soft);
+  --surface-border: color-mix(in srgb, var(--color-accent) 28%, transparent);
+  box-shadow: none;
+}
+
+.tone-timer {
+  --surface-background: var(--color-timer-soft);
+  --surface-border: color-mix(in srgb, var(--color-timer) 30%, transparent);
+  box-shadow: none;
+}
+
+.tone-danger {
+  --surface-background: var(--color-danger-soft);
+  --surface-border: color-mix(in srgb, var(--color-danger) 28%, transparent);
+  box-shadow: none;
+}
+
+.padding-none {
+  padding: 0;
+}
+
+.padding-compact {
+  padding: var(--space-3);
+}
+
+.padding-default {
+  padding: var(--space-4);
+}
+
+.padding-spacious {
+  padding: clamp(var(--space-5), 4vw, var(--space-8));
+}

@@ -1,0 +1,58 @@
+.card {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.header,
+.duration,
+.meta,
+.actions {
+  display: flex;
+  align-items: center;
+}
+
+.header {
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.code {
+  color: var(--color-accent);
+  font-size: var(--text-sm);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.duration,
+.meta {
+  gap: var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+}
+
+.duration svg,
+.meta svg {
+  inline-size: 1rem;
+  block-size: 1rem;
+}
+
+.card h2 {
+  margin: 0;
+  font-size: var(--text-2xl);
+  letter-spacing: -0.035em;
+}
+
+.focus {
+  margin: calc(var(--space-2) * -1) 0 0;
+  color: var(--color-text-secondary);
+}
+
+.actions {
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.actions > :first-child {
+  flex: 1 1 12rem;
+}
