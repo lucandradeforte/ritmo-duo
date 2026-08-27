@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import 'fake-indexeddb/auto';
 
-if (!window.matchMedia) {
+if (typeof window !== 'undefined' && !window.matchMedia) {
   Object.defineProperty(window, 'matchMedia', {
     configurable: true,
     value: (query: string): MediaQueryList => ({

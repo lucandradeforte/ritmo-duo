@@ -1,19 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
   <title id="title">Ritmo Duo</title>
-  <desc id="desc">Duas formas ascendentes representam treino em dupla e progresso.</desc>
+  <desc id="desc">Um halter com placas verde e laranja unidas por um pulso ascendente representa Lucas, Geovanna, treino e progresso.</desc>
   <defs>
-    <linearGradient id="surface" x1="76" y1="52" x2="436" y2="460" gradientUnits="userSpaceOnUse">
+    <linearGradient id="surface" x1="72" y1="52" x2="442" y2="464" gradientUnits="userSpaceOnUse">
       <stop stop-color="#1B211D"/>
       <stop offset="1" stop-color="#090B09"/>
     </linearGradient>
-    <linearGradient id="accent" x1="142" y1="349" x2="362" y2="143" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#79D900"/>
-      <stop offset="1" stop-color="#B8FF4F"/>
+    <linearGradient id="lime" x1="84" y1="170" x2="170" y2="350" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C9FF58"/>
+      <stop offset="1" stop-color="#79D900"/>
+    </linearGradient>
+    <linearGradient id="orange" x1="342" y1="168" x2="430" y2="350" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFB258"/>
+      <stop offset="1" stop-color="#FF7A1A"/>
     </linearGradient>
   </defs>
   <rect x="20" y="20" width="472" height="472" rx="116" fill="url(#surface)"/>
-  <path d="M132 345c0-22 18-40 40-40h20V194c0-44 36-80 80-80h22c18 0 32 14 32 32s-14 32-32 32h-22c-9 0-16 7-16 16v111h20c22 0 40 18 40 40s-18 40-40 40H172c-22 0-40-18-40-40Z" fill="url(#accent)"/>
-  <path d="M316 235c0-18 14-32 32-32s32 14 32 32v70h8c22 0 40 18 40 40s-18 40-40 40h-40c-22 0-40-18-40-40V235Z" fill="#FF9A3D"/>
-  <circle cx="224" cy="146" r="32" fill="#F5F8F2"/>
-  <circle cx="348" cy="146" r="32" fill="#F5F8F2"/>
+  <rect x="78" y="170" width="70" height="172" rx="30" fill="url(#lime)"/>
+  <rect x="132" y="196" width="40" height="120" rx="18" fill="#A6EF25"/>
+  <rect x="364" y="170" width="70" height="172" rx="30" fill="url(#orange)"/>
+  <rect x="340" y="196" width="40" height="120" rx="18" fill="#FF9738"/>
+  <path d="M158 256h70l25-42 31 84 25-42h45" fill="none" stroke="#F5F8F2" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="256" cy="256" r="10" fill="#B6F43A"/>
 </svg>

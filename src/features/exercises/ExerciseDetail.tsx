@@ -2,6 +2,7 @@ import { ExternalLink, WifiOff } from 'lucide-react';
 import type { Exercise } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { BottomSheet } from '@/components/ui/Modal';
+import { ExerciseMedia } from './ExerciseMedia';
 import styles from './ExerciseDetail.module.css';
 
 interface ExerciseDetailProps {
@@ -36,12 +37,15 @@ export function ExerciseDetail({ exercise, open, online, onClose }: ExerciseDeta
               <ExternalLink aria-hidden="true" /> Ver demonstração — {exercise.media.label}
             </a>
           ) : (
-            <div className={styles.offline}><WifiOff aria-hidden="true" /> Vídeo ou material externo indisponível offline.</div>
+            <div className={styles.offline}><WifiOff aria-hidden="true" /> Referência externa indisponível. A demonstração acima funciona offline.</div>
           )
         ) : <Button fullWidth variant="secondary" onClick={onClose}>Entendi</Button>
       }
     >
       <div className={styles.content}>
+        {exercise.demonstration ? (
+          <ExerciseMedia key={exercise.id} demonstration={exercise.demonstration} />
+        ) : null}
         <div className={styles.equipment}>
           <span>Equipamento</span>
           <strong>{exercise.equipmentLabel}</strong>

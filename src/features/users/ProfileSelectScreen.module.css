@@ -23,14 +23,11 @@
   block-size: 3rem;
   place-items: center;
   border-radius: var(--radius-md);
-  background: var(--color-accent);
-  color: var(--color-accent-ink);
 }
 
 .mark svg {
-  inline-size: 1.55rem;
-  block-size: 1.55rem;
-  stroke-width: 2.5;
+  inline-size: 3rem;
+  block-size: 3rem;
 }
 
 .brand > div:last-child {

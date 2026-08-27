@@ -1,4 +1,4 @@
-import { Dumbbell, RotateCcw } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
 import {
   useCallback,
   useEffect,
@@ -18,6 +18,7 @@ import {
   useNavigate,
 } from 'react-router-dom';
 import { BottomNavigation, type BottomNavigationItemId } from '@/components/navigation/BottomNavigation';
+import { BrandMark } from '@/components/brand/BrandMark';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import {
@@ -484,7 +485,7 @@ function AppController() {
   if (loading) {
     return (
       <main className={styles.loading}>
-        <div><span className={styles.brandMark}><Dumbbell /></span><strong>Preparando seus treinos…</strong></div>
+        <div><span className={styles.brandMark}><BrandMark /></span><strong>Preparando seus treinos…</strong></div>
       </main>
     );
   }
@@ -493,7 +494,7 @@ function AppController() {
     return (
       <main className={styles.fatal}>
         <div>
-          <span className={styles.brandMark}><Dumbbell /></span>
+          <span className={styles.brandMark}><BrandMark /></span>
           <h1>Não foi possível abrir o Ritmo Duo</h1>
           <p>{fatalError ?? 'As preferências locais não foram carregadas.'}</p>
           <Button leadingIcon={<RotateCcw />} onClick={() => window.location.reload()}>Tentar novamente</Button>

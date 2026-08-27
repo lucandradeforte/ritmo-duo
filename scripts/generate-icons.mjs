@@ -12,6 +12,14 @@ const background = { r: 9, g: 11, b: 9, alpha: 1 };
 await mkdir(publicDirectory, { recursive: true });
 
 const source = await readFile(sourcePath);
+const opaqueSource = Buffer.from(
+  source
+    .toString()
+    .replace(
+      '<rect x="20" y="20" width="472" height="472" rx="116" fill="url(#surface)"/>',
+      '<rect width="512" height="512" fill="url(#surface)"/>',
+    ),
+);
 
 const renderTransparent = async (size, fileName) => {
   await sharp(source, { density: 512 })
@@ -31,7 +39,7 @@ const renderOpaque = async (size, fileName) => {
   })
     .composite([
       {
-        input: await sharp(source, { density: 512 })
+        input: await sharp(opaqueSource, { density: 512 })
           .resize(size, size, { fit: 'contain' })
           .png()
           .toBuffer(),
@@ -42,10 +50,10 @@ const renderOpaque = async (size, fileName) => {
 };
 
 await Promise.all([
-  renderTransparent(192, 'pwa-192x192.png'),
-  renderTransparent(512, 'pwa-512x512.png'),
-  renderOpaque(512, 'pwa-maskable-512x512.png'),
-  renderOpaque(180, 'apple-touch-icon.png'),
+  renderTransparent(192, 'pwa-icon-v2-192x192.png'),
+  renderTransparent(512, 'pwa-icon-v2-512x512.png'),
+  renderOpaque(512, 'pwa-icon-v2-maskable-512x512.png'),
+  renderOpaque(180, 'apple-touch-icon-v2.png'),
 ]);
 
 console.log('Icones do Ritmo Duo gerados em public/.');

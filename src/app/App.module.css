@@ -24,15 +24,13 @@
   block-size: 4.5rem;
   place-items: center;
   border-radius: 1.35rem;
-  background: var(--color-accent);
-  color: var(--color-accent-ink);
   box-shadow: 0 0 0 0 rgb(182 244 58 / 30%);
   animation: pulse 1.6s var(--ease-standard) infinite;
 }
 
 .brandMark svg {
-  inline-size: 2.2rem;
-  block-size: 2.2rem;
+  inline-size: 4.5rem;
+  block-size: 4.5rem;
 }
 
 .loading p,

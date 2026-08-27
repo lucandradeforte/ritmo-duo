@@ -65,6 +65,16 @@ export interface ExerciseMedia {
   offlineMessage: string;
 }
 
+export interface ExerciseDemonstration {
+  kind: 'animated-webp';
+  animationPath: string;
+  posterPath: string;
+  alt: string;
+  caption: string;
+  width: number;
+  height: number;
+}
+
 export interface ExerciseInstructions {
   configuration: string[];
   execution: string[];
@@ -84,6 +94,7 @@ export interface Exercise {
   equipmentLabel: string;
   muscles: ExerciseMuscles;
   instructions: ExerciseInstructions;
+  demonstration?: ExerciseDemonstration;
   media?: ExerciseMedia;
 }
 

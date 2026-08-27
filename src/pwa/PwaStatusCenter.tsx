@@ -40,7 +40,7 @@ export const PwaStatusCenter = ({
 
   return (
     <>
-      {!online && !workoutActive ? (
+      {!online ? (
         <div className={styles.offline} role="status" aria-live="polite">
           <WifiOff aria-hidden="true" size={16} />
           Offline

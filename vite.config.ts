@@ -13,7 +13,6 @@ export default defineConfig({
     VitePWA({
       registerType: 'prompt',
       injectRegister: false,
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
         id: base,
         name: 'Ritmo Duo',
@@ -29,9 +28,9 @@ export default defineConfig({
         categories: ['fitness', 'health', 'lifestyle'],
         lang: 'pt-BR',
         icons: [
-          { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
-          { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
-          { src: 'pwa-maskable-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+          { src: 'pwa-icon-v2-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'pwa-icon-v2-512x512.png', sizes: '512x512', type: 'image/png' },
+          { src: 'pwa-icon-v2-maskable-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
         ]
       },
       workbox: {

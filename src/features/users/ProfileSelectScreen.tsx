@@ -1,5 +1,6 @@
 import { ArrowRight, Dumbbell, HeartPulse } from 'lucide-react';
 import type { UserId, UserProfile } from '@/types';
+import { BrandMark } from '@/components/brand/BrandMark';
 import { Card } from '@/components/ui/Surface';
 import styles from './ProfileSelectScreen.module.css';
 
@@ -13,7 +14,7 @@ export function ProfileSelectScreen({ profiles, onSelect }: ProfileSelectScreenP
     <main className={styles.screen}>
       <header className={styles.brand}>
         <div className={styles.mark} aria-hidden="true">
-          <Dumbbell />
+          <BrandMark />
         </div>
         <div>
           <strong>Ritmo Duo</strong>

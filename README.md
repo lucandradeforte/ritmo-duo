@@ -14,6 +14,7 @@ O Ritmo Duo funciona inteiramente no aparelho: não há login, servidor próprio
 - Histórico, volume, consistência, recordes e sugestões de progressão.
 - Cardio em esteira ou bicicleta com duração, intensidade e RPE.
 - Instruções técnicas e alternativas de cada exercício disponíveis offline.
+- Doze demonstrações animadas locais, com poster estático e controle de pausa.
 - Dark mode, light mode e preferência persistida.
 - Backup e restauração em JSON.
 - PWA instalável, offline-first e compatível com GitHub Pages.
@@ -71,6 +72,8 @@ Para recriar os ícones do aplicativo após alterar `public/favicon.svg`:
 npm run assets
 ```
 
+O ícone representa a identidade do produto: a placa verde simboliza Lucas, a laranja simboliza Geovanna, o halter representa a musculação e o traço branco combina ritmo, constância e progresso.
+
 ## GitHub Pages
 
 O arquivo `.github/workflows/deploy.yml` executa automaticamente:
@@ -102,9 +105,11 @@ Não é necessário publicar ou versionar a pasta `dist/`.
 
 ## PWA e comportamento offline
 
-O app inclui manifest, ícones comuns e maskable, `apple-touch-icon`, metatags para iOS e service worker. O app shell, os dados dos treinos e as instruções textuais são cacheados. Registrar e finalizar um treino não depende de rede.
+O app inclui manifest, ícones comuns e maskable, `apple-touch-icon`, metatags para iOS e service worker. O app shell, os dados dos treinos, as instruções textuais e as demonstrações animadas são cacheados. Registrar e finalizar um treino não depende de rede.
 
-Links e vídeos hospedados por terceiros continuam dependendo de conexão. Se estiver offline, o treino permanece utilizável e a mídia externa pode ser consultada depois.
+Links e vídeos hospedados por terceiros continuam dependendo de conexão. Se estiver offline, o treino e as demonstrações locais permanecem utilizáveis; apenas a referência externa pode ser consultada depois.
+
+As animações iniciam automaticamente quando a preferência de movimento reduzido não está ativa e sempre oferecem uma ação explícita de pausa. Com `prefers-reduced-motion: reduce`, o poster estático é exibido por padrão e a animação só começa após toque do usuário.
 
 Quando uma nova versão está disponível, o app solicita confirmação antes de atualizar. Durante um treino ativo, a atualização fica adiada para não interromper a sessão.
 
@@ -130,6 +135,8 @@ O iOS não oferece o mesmo prompt programático do Chrome. Por isso, o Ritmo Duo
 2. Abra o menu do navegador.
 3. Use **Adicionar página a → Tela inicial** ou a opção de instalação apresentada pela versão instalada.
 4. Confirme.
+
+Se o Ritmo Duo já estava instalado antes de uma atualização de ícone, remova o atalho antigo e adicione o app novamente à Tela de Início para contornar o cache de ícones do sistema.
 
 Vibração, Wake Lock e prompt nativo de instalação usam feature detection. Quando o navegador não oferece uma API, o app mantém feedback visual e o restante do treino continua normalmente.
 

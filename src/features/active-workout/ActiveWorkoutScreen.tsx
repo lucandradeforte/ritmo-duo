@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronLeft, ChevronRight, CircleHelp, Dumbbell, UsersRound } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, CirclePlay, Dumbbell, UsersRound } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import type {
   ActiveWorkoutState,
@@ -139,7 +139,14 @@ export function ActiveWorkoutScreen({
             <h1>{exercise?.name ?? ((prescription as CardioPrescription).modality === 'bike' ? 'Bicicleta' : 'Esteira')}</h1>
           </div>
           {exercise ? (
-            <Button size="icon" variant="ghost" aria-label="Ver execução" onClick={() => setDetailOpen(true)}><CircleHelp /></Button>
+            <Button
+              size="compact"
+              variant="secondary"
+              leadingIcon={<CirclePlay aria-hidden="true" />}
+              onClick={() => setDetailOpen(true)}
+            >
+              Execução
+            </Button>
           ) : null}
         </section>
 

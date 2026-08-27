@@ -25,6 +25,15 @@ describe('dados iniciais do programa', () => {
     expect(exercises).toHaveLength(12);
     expect(new Set(exercises.map((exercise) => exercise.id)).size).toBe(exercises.length);
     expect(exercises.every((exercise) => exercise.media?.url.startsWith('https://'))).toBe(true);
+    expect(exercises.every((exercise) => exercise.demonstration?.kind === 'animated-webp')).toBe(true);
+
+    exercises.forEach((exercise) => {
+      const demonstration = exercise.demonstration;
+      expect(demonstration).toBeDefined();
+      expect(demonstration?.alt.length).toBeGreaterThan(20);
+      expect(demonstration?.animationPath).toMatch(/^exercise-media\/.+\.webp$/u);
+      expect(demonstration?.posterPath).toMatch(/^exercise-media\/.+-poster\.webp$/u);
+    });
 
     for (const plan of [lucasWorkoutPlan, geovannaWorkoutPlan]) {
       expect(plan.templates.map((template) => template.code)).toEqual(['A', 'B', 'C']);
