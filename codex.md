@@ -163,7 +163,7 @@ Telas e comportamentos importantes:
 Alvos principais:
 
 - iPhone 16e: Safari, navegador e modo instalado/standalone.
-- Galaxy A55: Chrome e Samsung Internet, navegador e PWA instalada.
+- Galaxy A55: Chrome para instalação da PWA; Samsung Internet para uso no navegador.
 
 Cuidados obrigatórios já previstos no código:
 
@@ -174,6 +174,7 @@ Cuidados obrigatórios já previstos no código:
 - Sem dependência funcional de hover ou swipe.
 - Feature detection para APIs opcionais, por exemplo `navigator.vibrate` e Wake Lock.
 - `prefers-reduced-motion` respeitado.
+- O Samsung Internet pode criar um APK próprio cuja instalação é bloqueada pelo Play Protect em Android recente. Não exibir o prompt nativo nesse navegador; orientar a abertura da mesma URL no Chrome e nunca sugerir desativar o Play Protect.
 
 ### Offline-first
 
@@ -235,24 +236,23 @@ Não substituir essas mídias por GIFs externos pesados. Se forem adicionados no
 
 Tema: dark mode prioritário, com superfícies grafite, alto contraste e cores energéticas. Há suporte a light mode, `prefers-color-scheme`, escolha manual e persistência de preferência.
 
-O ícone foi renovado para explicar o nome/propósito da aplicação:
+O ícone `v3` comunica o propósito fitness da aplicação:
 
-- Verde-limão no lado esquerdo: Lucas.
-- Laranja no lado direito: Geovanna.
-- Halter central: musculação.
-- Traço/pulso: constância, saúde e progresso.
+- Atleta em verde-limão: movimento, constância e progresso.
+- Barra em coral: musculação e força.
+- Fundo grafite: contraste em launcher, navegador e modo instalado.
 
 Arquivos relevantes:
 
 - `src/components/brand/BrandMark.tsx`.
-- `public/favicon.svg`.
-- `public/apple-touch-icon-v2.png`.
-- `public/pwa-icon-v2-192x192.png`.
-- `public/pwa-icon-v2-512x512.png`.
-- `public/pwa-icon-v2-maskable-512x512.png`.
+- `public/app-icon-v3-source.png`.
+- `public/apple-touch-icon-v3.png`.
+- `public/pwa-icon-v3-192x192.png`.
+- `public/pwa-icon-v3-512x512.png`.
+- `public/pwa-icon-v3-maskable-512x512.png`.
 - `scripts/generate-icons.mjs` para regenerar os ícones.
 
-Os ícones antigos sem sufixo `v2` foram removidos. Em iOS, a atualização do `apple-touch-icon` não é garantida para atalhos já instalados: para receber o novo ícone, remover o atalho antigo e adicioná-lo novamente pela opção “Adicionar à Tela de Início” do Safari.
+Em iOS, a atualização do `apple-touch-icon` não é garantida para atalhos já instalados: para receber o novo ícone, remover o atalho antigo e adicioná-lo novamente pela opção “Adicionar à Tela de Início” do Safari.
 
 ## 10. Build, GitHub Pages e publicação
 
@@ -380,9 +380,10 @@ Teste manual em dispositivos reais:
 
 ### Galaxy A55 / Chrome e Samsung Internet
 
-1. Abrir a URL, instalar como PWA quando disponível.
-2. Validar inputs, scroll, mídia, offline, armazenamento, standalone e recuperação de sessão.
-3. Quando suportado, validar feedback por vibração sem que o recurso seja requisito para finalizar descanso.
+1. No Chrome, abrir a URL e instalar como PWA quando disponível.
+2. No Samsung Internet, confirmar a orientação para abrir a mesma URL no Chrome e validar o uso no navegador.
+3. Validar inputs, scroll, mídia, offline, armazenamento, standalone e recuperação de sessão.
+4. Quando suportado, validar feedback por vibração sem que o recurso seja requisito para finalizar descanso.
 
 ## 16. Comandos de desenvolvimento
 

@@ -1,6 +1,7 @@
 import { Download, RefreshCw, Share2, WifiOff, X } from 'lucide-react';
 import { useState } from 'react';
 import {
+  getCurrentInstallBrowser,
   getCurrentInstallPlatform,
   isRunningStandalone,
   useInstallPrompt,
@@ -21,6 +22,7 @@ export const PwaStatusCenter = ({
   onDismissInstallHelp,
 }: PwaStatusCenterProps) => {
   const online = useOnlineStatus();
+  const browser = getCurrentInstallBrowser();
   const platform = getCurrentInstallPlatform();
   const standalone = isRunningStandalone();
   const { canPrompt, installed, promptInstall } = useInstallPrompt();
@@ -29,8 +31,19 @@ export const PwaStatusCenter = ({
 
   const showIosHelp =
     platform === 'ios' && !standalone && !installed && !installHelpDismissed && !workoutActive;
+  const showSamsungInstallHelp =
+    browser === 'samsung-internet' &&
+    !standalone &&
+    !installed &&
+    !installHelpDismissed &&
+    !workoutActive;
   const showNativeInstall =
-    canPrompt && !standalone && !installed && !installHelpDismissed && !workoutActive;
+    canPrompt &&
+    browser !== 'samsung-internet' &&
+    !standalone &&
+    !installed &&
+    !installHelpDismissed &&
+    !workoutActive;
   const showUpdate = updateAvailable && !workoutActive && !updateDismissed;
 
   const handleInstall = async () => {
@@ -47,7 +60,7 @@ export const PwaStatusCenter = ({
         </div>
       ) : null}
 
-      {showIosHelp || showNativeInstall || showUpdate ? (
+      {showIosHelp || showSamsungInstallHelp || showNativeInstall || showUpdate ? (
         <aside className={styles.noticeStack} aria-label="Avisos do aplicativo">
           {showUpdate ? (
             <section className={styles.notice} aria-labelledby="pwa-update-title">
@@ -113,6 +126,36 @@ export const PwaStatusCenter = ({
                 <strong id="ios-install-title">Instalar no iPhone</strong>
                 <span>
                   No Safari, toque em Compartilhar e depois em Adicionar à Tela de Início.
+                </span>
+                <button
+                  className={styles.secondaryAction}
+                  type="button"
+                  onClick={onDismissInstallHelp}
+                >
+                  Entendi
+                </button>
+              </div>
+              <button
+                className={styles.dismissButton}
+                type="button"
+                aria-label="Fechar ajuda de instalação"
+                onClick={onDismissInstallHelp}
+              >
+                <X aria-hidden="true" size={20} />
+              </button>
+            </section>
+          ) : null}
+
+          {showSamsungInstallHelp ? (
+            <section className={styles.notice} aria-labelledby="samsung-install-title">
+              <div className={styles.noticeIcon} aria-hidden="true">
+                <Download size={21} />
+              </div>
+              <div className={styles.noticeBody}>
+                <strong id="samsung-install-title">Instale pelo Chrome</strong>
+                <span>
+                  No Samsung Internet, o Android pode bloquear a instalação. Abra este endereço no
+                  Google Chrome e escolha Instalar aplicativo.
                 </span>
                 <button
                   className={styles.secondaryAction}

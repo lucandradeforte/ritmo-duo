@@ -28,9 +28,9 @@ export default defineConfig({
         categories: ['fitness', 'health', 'lifestyle'],
         lang: 'pt-BR',
         icons: [
-          { src: 'pwa-icon-v2-192x192.png', sizes: '192x192', type: 'image/png' },
-          { src: 'pwa-icon-v2-512x512.png', sizes: '512x512', type: 'image/png' },
-          { src: 'pwa-icon-v2-maskable-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+          { src: 'pwa-icon-v3-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'pwa-icon-v3-512x512.png', sizes: '512x512', type: 'image/png' },
+          { src: 'pwa-icon-v3-maskable-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
         ]
       },
       workbox: {

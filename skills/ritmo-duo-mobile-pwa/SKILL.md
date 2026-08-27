@@ -23,6 +23,7 @@ Use this skill for vite.config.ts, index.html, src/pwa, public assets, exercise 
 - Keep WebP included in the production precache.
 - Do not add duplicate precache entries for assets Workbox already discovers.
 - Use prompt-style service-worker updates. A new version must not reload or interrupt an active workout.
+- Samsung Internet can generate an APK for a PWA that Android may block through Play Protect. Do not offer the native install prompt there; direct installation to Chrome and never advise disabling Play Protect.
 - Test the production build with GitHub Actions variables whenever base paths, manifest, assets or cache behavior changes.
 
 ## Mobile invariants
@@ -36,4 +37,4 @@ Use this skill for vite.config.ts, index.html, src/pwa, public assets, exercise 
 
 ## Validate
 
-Run the asset integrity test through the normal test suite and the GitHub Pages build. For material mobile or PWA changes, manually verify install, standalone, offline, background recovery and update behavior on iPhone Safari and Galaxy Chrome or Samsung Internet.
+Run the asset integrity test through the normal test suite and the GitHub Pages build. For material mobile or PWA changes, manually verify install and standalone in iPhone Safari and Galaxy Chrome; in Samsung Internet, verify the Chrome-install guidance plus offline, background recovery and update behavior in the browser.

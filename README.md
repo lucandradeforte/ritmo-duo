@@ -74,13 +74,13 @@ pnpm run preview
 
 O build de produção é gerado em `dist/`.
 
-Para recriar os ícones do aplicativo após alterar `public/favicon.svg`:
+Para recriar os ícones do aplicativo após alterar `public/app-icon-v3-source.png`:
 
 ```bash
 pnpm run assets
 ```
 
-O ícone representa a identidade do produto: a placa verde simboliza Lucas, a laranja simboliza Geovanna, o halter representa a musculação e o traço branco combina ritmo, constância e progresso.
+O ícone reúne uma atleta em movimento e uma barra: uma referência direta a treino, força, constância e progresso. O verde-limão e o coral preservam o contraste energético do Ritmo Duo.
 
 ## GitHub Pages
 
@@ -139,10 +139,9 @@ O iOS não oferece o mesmo prompt programático do Chrome. Por isso, o Ritmo Duo
 
 ### Instalação no Galaxy A55 — Samsung Internet
 
-1. Abra a aplicação pelo **Samsung Internet**.
-2. Abra o menu do navegador.
-3. Use **Adicionar página a → Tela inicial** ou a opção de instalação apresentada pela versão instalada.
-4. Confirme.
+O Samsung Internet pode tentar instalar a PWA como um APK próprio. Em versões recentes do Android, esse APK pode ser bloqueado pelo Play Protect por usar um alvo de Android mais antigo. Essa configuração não é controlada pelo Ritmo Duo.
+
+Para instalar com segurança, abra a mesma URL no **Google Chrome** e siga as instruções da seção anterior. O Samsung Internet continua podendo ser usado para acessar o app pelo navegador; não desative o Play Protect nem aceite uma instalação bloqueada apenas para contornar esse aviso.
 
 Se o Ritmo Duo já estava instalado antes de uma atualização de ícone, remova o atalho antigo e adicione o app novamente à Tela de Início para contornar o cache de ícones do sistema.
 
@@ -231,7 +230,7 @@ Emulação ajuda no desenvolvimento, mas não substitui esta rodada nos aparelho
 ## Galaxy A55 — Samsung Internet
 
 - [ ] Repetir seleção de perfil, treino ativo, conclusão de série e histórico.
-- [ ] Validar instalação pela opção disponível no menu do navegador.
+- [ ] Confirmar que o aviso do app orienta a abrir a mesma URL no Chrome, sem exibir o prompt nativo de instalação.
 - [ ] Conferir inputs decimais/numéricos com Samsung Keyboard.
 - [ ] Verificar scroll, bottom navigation, modais e vídeos em portrait/landscape.
 - [ ] Confirmar service worker e reabertura offline.

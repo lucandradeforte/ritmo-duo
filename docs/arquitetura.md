@@ -197,6 +197,7 @@ Componentes e features não devem acessar IndexedDB ou localStorage diretamente.
 | Mídia | Cada demonstração usa um par de animação e poster WebP em public/exercise-media. |
 | Cache | Workbox precacheia WebP, HTML, CSS, JS, SVG, PNG, ICO, WOFF2 e JSON. |
 | Atualização | O service worker usa atualização orientada por confirmação e não atualiza durante treino ativo. |
+| Instalação Android | O prompt nativo é ocultado no Samsung Internet, cujo APK gerado pode ser bloqueado pelo Play Protect; o app orienta a instalação pelo Chrome. |
 | Recursos opcionais | Áudio, vibração e Wake Lock usam feature detection e fallback visual. |
 
 O teste em **scripts/exercise-media-assets.test.ts** confirma que todos os WebP declarados existem e têm assinatura válida. Ao incluir uma nova demonstração, registre o catálogo tipado, os dois arquivos e o teste de integridade.
@@ -231,7 +232,7 @@ GITHUB_ACTIONS=true GITHUB_REPOSITORY=lucandradeforte/ritmo-duo pnpm run build
 git diff --check
 ~~~
 
-Mudanças visuais, PWA ou de fluxo ativo também pedem revisão manual nas larguras 360, 375, 390, 412 e 430 px, em tema claro/escuro, com offline, recuperação de sessão e modo dupla. Alterações relevantes de PWA devem ser verificadas em iPhone/Safari e Galaxy/Chrome ou Samsung Internet.
+Mudanças visuais, PWA ou de fluxo ativo também pedem revisão manual nas larguras 360, 375, 390, 412 e 430 px, em tema claro/escuro, com offline, recuperação de sessão e modo dupla. Alterações relevantes de PWA devem ser verificadas em iPhone/Safari, Galaxy/Chrome para instalação e Galaxy/Samsung Internet para a orientação de instalação e uso no navegador.
 
 ## Invariantes do produto
 

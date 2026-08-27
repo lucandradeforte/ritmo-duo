@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { closeStorage, deleteStorageDatabase, getActiveWorkout } from '@/storage';
 import { App } from './App';
@@ -25,6 +25,25 @@ describe.sequential('fluxo principal do aplicativo', () => {
 
     expect(await screen.findByText('Olá, Lucas')).toBeVisible();
     expect(screen.getByRole('button', { name: /Iniciar treino/i })).toBeEnabled();
+  });
+
+  it('fecha a ficha pelo botão voltar sem sair de Treinos', async () => {
+    render(<App />);
+    fireEvent.click(await screen.findByRole('button', { name: /Geovanna/i }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Treinos' }));
+    const firstWorkoutCard = (await screen.findByRole('heading', { name: /Treino A/i })).closest('article');
+    if (!firstWorkoutCard) throw new Error('Card do treino A não encontrado');
+    fireEvent.click(within(firstWorkoutCard).getByRole('button', { name: 'Ver ficha' }));
+
+    expect(await screen.findByRole('dialog', { name: /Treino A/i })).toBeVisible();
+    expect(window.location.hash).toContain('/workouts?ficha=');
+
+    window.history.back();
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: /Treino A/i })).not.toBeInTheDocument();
+      expect(window.location.hash).toBe('#/workouts');
+    });
   });
 
   it('persiste uma série imediatamente e recupera o treino depois de remontar', async () => {

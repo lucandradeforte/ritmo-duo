@@ -282,10 +282,9 @@ O iOS não oferece o mesmo botão de instalação programática dos navegadores 
 
 ### Android no Samsung Internet
 
-1. Abra o app no **Samsung Internet**.
-2. Abra o menu.
-3. Use **Adicionar página a → Tela inicial** ou a opção de instalação oferecida pelo navegador.
-4. Confirme.
+O Samsung Internet pode criar um APK próprio para instalar a PWA. Em versões recentes do Android, o Play Protect pode bloqueá-lo por estar associado a uma versão antiga do Android. Isso depende do navegador, não do Ritmo Duo.
+
+Para instalar com segurança, abra a mesma URL no **Google Chrome** e siga os passos da seção anterior. Você ainda pode usar o Samsung Internet para abrir o app no navegador. Não desative o Play Protect nem aceite uma instalação bloqueada apenas para contornar o aviso.
 
 Se o ícone continuar antigo depois de uma atualização, remova o atalho e instale novamente pela tela inicial.
 

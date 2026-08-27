@@ -37,7 +37,7 @@ Service worker e Wake Lock precisam de localhost ou HTTPS para validação confi
 | pnpm run lint | Executa ESLint sem warnings. |
 | pnpm run test | Executa a suíte Vitest completa. |
 | pnpm run test:watch | Mantém o Vitest em modo observação. |
-| pnpm run assets | Regenera ícones a partir de public/favicon.svg. |
+| pnpm run assets | Regenera os ícones v3 a partir de public/app-icon-v3-source.png. |
 
 Para simular o contexto de subpasta do GitHub Pages no build:
 
@@ -186,7 +186,7 @@ Para mudanças de PWA ou interação móvel, confirme em dispositivo físico:
 | --- | --- |
 | iPhone 16e no Safari | Instalação pela Tela de Início, safe areas, teclado, mídia, offline e retorno de background. |
 | Galaxy A55 no Chrome | Instalação, inputs, Wake Lock, recuperação, offline e modo standalone. |
-| Galaxy A55 no Samsung Internet | Instalação disponível, inputs, scroll, mídia, service worker e backup. |
+| Galaxy A55 no Samsung Internet | Orientação para instalar pelo Chrome, inputs, scroll, mídia, service worker e backup no navegador. |
 
 Emulação não substitui essa validação.
 

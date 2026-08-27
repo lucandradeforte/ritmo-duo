@@ -209,6 +209,7 @@ function RouteFrame({ children }: { children: ReactNode }) {
 
 function AppController() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [fatalError, setFatalError] = useState<string | null>(null);
   const [preferences, setPreferences] = useState<AppPreferences | null>(null);
@@ -220,7 +221,6 @@ function AppController() {
   const [now, setNow] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
   const [recoveryOpen, setRecoveryOpen] = useState(false);
-  const [selectedWorkoutDetail, setSelectedWorkoutDetail] = useState<WorkoutTemplate | null>(null);
   const [selectedSessionDetail, setSelectedSessionDetail] = useState<WorkoutSession | null>(null);
   const [completionOpen, setCompletionOpen] = useState(false);
   const [completionUserId, setCompletionUserId] = useState<UserId | null>(null);
@@ -353,7 +353,6 @@ function AppController() {
 
   const handleStart = useCallback(
     async (template: WorkoutTemplate, duo = false) => {
-      setSelectedWorkoutDetail(null);
       if (activeWorkoutRef.current) {
         setRecoveryOpen(true);
         setToast('Conclua ou descarte o treino em andamento antes de iniciar outro.');
@@ -517,6 +516,10 @@ function AppController() {
   }
 
   const plan = getWorkoutPlan(selectedUser.id);
+  const selectedWorkoutDetail =
+    plan.templates.find(
+      (template) => template.id === new URLSearchParams(location.search).get('ficha'),
+    ) ?? null;
   const nextWorkout = suggestedWorkout(plan.templates, userSessions, now);
   const weekStart = getWeekStart(now);
   const completedThisWeek = userSessions.filter((session) => session.startedAt >= weekStart).length;
@@ -775,7 +778,7 @@ function AppController() {
               <WorkoutsScreen
                 workouts={plan.templates}
                 onStart={(workout) => void handleStart(workout)}
-                onView={setSelectedWorkoutDetail}
+                onView={(workout) => void navigate(`/workouts?ficha=${workout.id}`)}
               />
             </RouteFrame>
           }
@@ -885,8 +888,11 @@ function AppController() {
       <WorkoutDetail
         open={selectedWorkoutDetail !== null}
         workout={selectedWorkoutDetail}
-        onClose={() => setSelectedWorkoutDetail(null)}
-        onStart={(workout) => void handleStart(workout)}
+        onClose={() => void navigate('/workouts', { replace: true })}
+        onStart={(workout) => {
+          void navigate('/workouts', { replace: true });
+          void handleStart(workout);
+        }}
       />
 
       <SessionDetail

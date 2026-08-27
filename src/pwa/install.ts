@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 
 export type InstallPlatform = 'ios' | 'android' | 'other';
+export type InstallBrowser = 'samsung-internet' | 'other';
 export type InstallOutcome = 'accepted' | 'dismissed' | 'unavailable';
 
 export interface PlatformSignals {
@@ -78,6 +79,15 @@ export const getCurrentInstallPlatform = (): InstallPlatform => {
     platform: navigator.platform,
     maxTouchPoints: navigator.maxTouchPoints,
   });
+};
+
+export const detectInstallBrowser = ({ userAgent }: Pick<PlatformSignals, 'userAgent'>): InstallBrowser =>
+  /SamsungBrowser/i.test(userAgent) ? 'samsung-internet' : 'other';
+
+export const getCurrentInstallBrowser = (): InstallBrowser => {
+  if (typeof navigator === 'undefined') return 'other';
+
+  return detectInstallBrowser({ userAgent: navigator.userAgent });
 };
 
 export const isRunningStandalone = (): boolean => {
