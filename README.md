@@ -4,6 +4,14 @@ Aplicação mobile-first para acompanhar os treinos de Lucas e Geovanna na acade
 
 O Ritmo Duo funciona inteiramente no aparelho: não há login, servidor próprio ou envio do histórico para terceiros. Cada navegador mantém seus próprios dados locais.
 
+## Documentação
+
+- [Guia completo de uso](docs/guia-do-usuario.md) — fluxo do aplicativo, treino solo e em dupla, backup, instalação e solução de problemas.
+- [Arquitetura](docs/arquitetura.md) — mapa das camadas, dados, persistência, PWA e invariantes do produto.
+- [Desenvolvimento](docs/desenvolvimento.md) — setup, convenções, testes, publicação e checklist de manutenção.
+
+As skills para evolução do projeto estão em [skills/](skills/). Elas são a fonte de contexto específica do Ritmo Duo; cada uma descreve quando deve ser usada e quais invariantes precisa preservar.
+
 ## Principais recursos
 
 - Treinos A, B e C individualizados para Lucas e Geovanna.
@@ -33,35 +41,35 @@ O Ritmo Duo funciona inteiramente no aparelho: não há login, servidor próprio
 ## Requisitos
 
 - Node.js 22.
-- npm 10 ou superior para execução local; o CI usa pnpm 11.19 com lockfile congelado.
+- pnpm 11.19.0; o projeto declara essa versão no package manager e o CI usa lockfile congelado.
 
 ## Execução local
 
 ### PowerShell — Windows 11
 
 ```powershell
-npm install
-npm run dev
+pnpm install --frozen-lockfile
+pnpm run dev
 ```
 
 ### Bash — WSL2/Ubuntu
 
 ```bash
-npm install
-npm run dev
+pnpm install --frozen-lockfile
+pnpm run dev
 ```
 
-O Vite exibirá o endereço local no terminal. Para abrir em outro dispositivo da mesma rede durante o desenvolvimento, execute `npm run dev -- --host` e use o endereço de rede informado. Recursos que exigem contexto seguro, como service worker e Wake Lock, devem ser validados em `localhost` ou HTTPS.
+O Vite exibirá o endereço local no terminal. Para abrir em outro dispositivo da mesma rede durante o desenvolvimento, execute `pnpm run dev -- --host` e use o endereço de rede informado. Recursos que exigem contexto seguro, como service worker e Wake Lock, devem ser validados em `localhost` ou HTTPS.
 
 ## Validação e build
 
 Execute no PowerShell ou no Bash/WSL2, sem misturar a sintaxe dos ambientes:
 
 ```bash
-npm run lint
-npm run test
-npm run build
-npm run preview
+pnpm run lint
+pnpm run test
+pnpm run build
+pnpm run preview
 ```
 
 O build de produção é gerado em `dist/`.
@@ -69,7 +77,7 @@ O build de produção é gerado em `dist/`.
 Para recriar os ícones do aplicativo após alterar `public/favicon.svg`:
 
 ```bash
-npm run assets
+pnpm run assets
 ```
 
 O ícone representa a identidade do produto: a placa verde simboliza Lucas, a laranja simboliza Geovanna, o halter representa a musculação e o traço branco combina ritmo, constância e progresso.
@@ -169,6 +177,18 @@ src/
 └── utils/                # regras e cálculos puros
 ```
 
+## Skills para evolução
+
+As skills são mantidas no repositório para que decisões específicas do produto não se percam entre sessões. Para usá-las em uma instalação do Codex, disponibilize a pasta desejada de [skills/](skills/) no diretório de skills configurado nessa instalação.
+
+| Skill | Quando usar |
+| --- | --- |
+| [ritmo-duo-project-context](skills/ritmo-duo-project-context/SKILL.md) | Qualquer alteração não trivial no projeto. |
+| [ritmo-duo-training-domain](skills/ritmo-duo-training-domain/SKILL.md) | Perfis, fichas, exercícios, fases, RIR/RPE ou progressão. |
+| [ritmo-duo-active-workout-storage](skills/ritmo-duo-active-workout-storage/SKILL.md) | Sessão ativa, modo dupla, timers, histórico, IndexedDB ou backup. |
+| [ritmo-duo-react-ui](skills/ritmo-duo-react-ui/SKILL.md) | Telas, componentes, navegação, CSS Modules e acessibilidade. |
+| [ritmo-duo-mobile-pwa](skills/ritmo-duo-mobile-pwa/SKILL.md) | PWA, Workbox, assets públicos, GitHub Pages ou compatibilidade mobile. |
+
 ## Compatibilidade prioritária
 
 - iPhone 16e: Safari e modo standalone pela Tela de Início.
@@ -220,3 +240,5 @@ Emulação ajuda no desenvolvimento, mas não substitui esta rodada nos aparelho
 ## Privacidade
 
 O Ritmo Duo não possui telemetria, autenticação nem backend nesta versão. Dados pessoais, cargas e histórico permanecem no storage local do navegador, exceto quando o próprio usuário exporta um backup.
+
+Backups JSON não são criptografados. Guarde-os em local confiável e não compartilhe o arquivo sem necessidade.
