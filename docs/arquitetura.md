@@ -22,17 +22,20 @@ O Ritmo Duo é uma PWA mobile-first, inteiramente client-side, para registrar tr
 ~~~text
 src/main.tsx
   └─ App
-      └─ HashRouter
-          └─ AppController
-              ├─ carrega IndexedDB e preferências
-              ├─ mantém estado de UI em memória
-              ├─ monta rotas, modais e feedbacks globais
-              ├─ persiste treino ativo em fila serializada
-              ├─ coordena conclusão atômica e recuperação
-              └─ conecta PWA, tema, Wake Lock e conectividade
+      └─ AppErrorBoundary
+          └─ HashRouter
+              └─ AppController
+                  ├─ useAppBootstrap carrega IndexedDB e preferências
+                  ├─ useActiveWorkoutController serializa o treino ativo
+                  ├─ useSelectedUserData isola seletores por perfil
+                  ├─ ActiveWorkoutRoute compõe o treino ativo controlado
+                  ├─ monta rotas, modais e feedbacks globais
+                  └─ conecta PWA, tema, Wake Lock e conectividade
 ~~~
 
-**src/app/App.tsx** é o composition root. Ele não concentra regras de cálculo: delega criação de sessão, fase, timer, progressão e volume para **src/utils**, e delega leitura/escrita para **src/storage**.
+**src/app/App.tsx** continua sendo o composition root. O bootstrap, a fila de persistência e os seletores por perfil ficam em hooks adjacentes de **src/app**, enquanto **ActiveWorkoutRoute** concentra a adaptação entre estado/controladores e a tela controlada. Regras determinísticas continuam em **src/utils** e toda leitura/escrita continua em **src/storage**.
+
+**AppErrorBoundary** envolve o router para cobrir falhas de renderização e carregamento lazy com um fallback seguro, sem expor detalhes internos nem tentar recarregar automaticamente.
 
 As telas secundárias são carregadas sob demanda com lazy e Suspense. A tela Hoje e o treino ativo são carregados diretamente por serem os caminhos críticos.
 
@@ -135,9 +138,9 @@ O fluxo crítico é:
 
 ~~~text
 Ação na tela
-  → callback em AppController
+  → callback em ActiveWorkoutRoute/AppController
   → função pura cria novo estado
-  → persistActive enfileira saveActiveWorkout
+  → useActiveWorkoutController enfileira saveActiveWorkout
   → IndexedDB
 
 Salvar e concluir
@@ -158,7 +161,7 @@ Salvar e concluir
 
 ### Timers e persistência
 
-O descanso e a duração usam horários de início, não contadores incrementais. Ao voltar de background, o tempo é recalculado por Data atual menos timestamp inicial.
+O descanso e as durações usam horários de início, não contadores incrementais. Ao voltar de background, o tempo é recalculado por data atual menos timestamp inicial. Os relógios do treino e do cardio vivem em pequenos boundaries do módulo de treino ativo; somente esses elementos renderizam a cada segundo. O composition root atualiza seu relógio de calendário uma vez por minuto.
 
 O AppController mantém uma fila de escrita para preservar a ordem das alterações do treino ativo. Erros de persistência são expostos visualmente com opção de nova tentativa; não descarte estado em memória como forma de recuperar um erro.
 
@@ -177,6 +180,8 @@ O banco IndexedDB chama-se **ritmo-duo** e está na versão definida em **src/st
 | weightEntries | id; by-user, by-recorded-at | histórico de peso corporal por perfil. |
 
 **src/storage/database.ts** abre o banco e semeia perfis/preferências. **src/storage/backup.ts** exporta, valida e importa backup. A importação substitui todos os stores de usuário, preferências, sessões, sessão ativa, progresso e pesagens após validação estrutural. Backups da versão anterior continuam importáveis sem histórico de pesagens.
+
+A limpeza de histórico por perfil passa por **clearUserWorkoutHistory**, que remove as sessões armazenadas daquele perfil e seu progresso de exercícios em uma única transação sobre os dois stores. Perfis, preferências, pesagens, backups já exportados e o treino ativo não fazem parte dessa operação.
 
 Qualquer mudança de schema exige:
 
@@ -232,6 +237,8 @@ pnpm run test
 GITHUB_ACTIONS=true GITHUB_REPOSITORY=lucandradeforte/ritmo-duo pnpm run build
 git diff --check
 ~~~
+
+O workflow executa lint, testes e build também em pull requests. Configuração, upload de artefato e deploy do GitHub Pages ficam restritos a push na **main** ou execução manual do workflow.
 
 Mudanças visuais, PWA ou de fluxo ativo também pedem revisão manual nas larguras 360, 375, 390, 412 e 430 px, em tema claro/escuro, com offline, recuperação de sessão e modo dupla. Alterações relevantes de PWA devem ser verificadas em iPhone/Safari, Galaxy/Chrome para instalação e Galaxy/Samsung Internet para a orientação de instalação e uso no navegador.
 

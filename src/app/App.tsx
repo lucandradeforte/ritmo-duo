@@ -3,8 +3,6 @@ import {
   useCallback,
   useEffect,
   lazy,
-  useMemo,
-  useRef,
   useState,
   Suspense,
   type ReactNode,
@@ -26,65 +24,47 @@ import {
   getWorkoutPlan,
   getWorkoutTemplate,
   getWorkoutTemplateById,
-  users as seedUsers,
 } from '@/data';
-import { ActiveWorkoutScreen } from '@/features/active-workout/ActiveWorkoutScreen';
+import { WorkoutElapsedTime } from '@/features/active-workout/WorkoutElapsedTime';
 import { EMPTY_WORKOUT_FEEDBACK } from '@/features/active-workout/workout-feedback';
 import { ProfileSelectScreen } from '@/features/users/ProfileSelectScreen';
 import { TodayScreen } from '@/features/workouts/TodayScreen';
 import {
-  notifyRestComplete,
   PwaStatusCenter,
   unlockFeedbackAudio,
   useOnlineStatus,
   useWakeLock,
 } from '@/pwa';
 import {
-  clearExerciseProgress,
-  clearWorkoutHistory,
+  clearUserWorkoutHistory,
   completeActiveWorkout,
   addWeightEntry,
   discardActiveWorkout,
   downloadBackup,
-  getActiveWorkout,
-  getPreferences,
   importBackupFile,
-  initializeStorage,
-  listExerciseProgress,
-  listUserProfiles,
-  listWeightEntries,
-  listWorkoutSessions,
-  saveActiveWorkout,
   updatePreferences,
 } from '@/storage';
 import type {
   ActiveWorkoutState,
   AppPreferences,
-  ExerciseProgressRecord,
-  ProgressionEquipment,
   ThemePreference,
   UserId,
-  UserProfile,
-  WeightEntry,
   WorkoutSession,
   WorkoutTemplate,
   WorkoutFeedback,
 } from '@/types';
 import {
-  adjustRestDuration,
   calculateProgramWeekFromHistory,
   calculateSessionVolume,
-  completeActiveWorkoutSet,
   createActiveWorkout,
-  createRestTimer,
-  evaluateDoubleProgression,
-  formatClock,
-  getElapsedSeconds,
-  getEffectivePrescription,
   getPendingParticipantIds,
   switchActiveWorkoutUser,
-  updateActiveWorkoutSet,
 } from '@/utils';
+import { ActiveWorkoutRoute } from './ActiveWorkoutRoute';
+import { AppErrorBoundary } from './AppErrorBoundary';
+import { useActiveWorkoutController } from './useActiveWorkoutController';
+import { useAppBootstrap } from './useAppBootstrap';
+import { useSelectedUserData } from './useSelectedUserData';
 import styles from './App.module.css';
 
 const WorkoutsScreen = lazy(async () => ({
@@ -147,13 +127,6 @@ const suggestedWorkout = (
   return templates.find((template) => template.code === (todayCode ?? fallbackCode)) ?? templates[0]!;
 };
 
-const progressionEquipment = (equipmentTypes: readonly string[]): ProgressionEquipment => {
-  if (equipmentTypes.includes('multi-station')) return 'machine';
-  if (equipmentTypes.includes('dumbbell')) return 'dumbbell';
-  if (equipmentTypes.includes('bodyweight')) return 'bodyweight';
-  return 'barbell-lower';
-};
-
 const isReadyForOptionalVolume = (sessions: readonly WorkoutSession[]): boolean => {
   const recentLucasSessions = sessions
     .filter((session) => session.userId === 'lucas' && session.status === 'completed')
@@ -166,37 +139,6 @@ const isReadyForOptionalVolume = (sessions: readonly WorkoutSession[]): boolean 
         (session.feedback.overallRpe === null || session.feedback.overallRpe <= 7),
     )
   );
-};
-
-interface LoadState {
-  preferences: AppPreferences;
-  profiles: UserProfile[];
-  sessions: WorkoutSession[];
-  progress: ExerciseProgressRecord[];
-  weightEntries: WeightEntry[];
-  activeWorkout: ActiveWorkoutState | null;
-}
-
-type PersistenceState = 'idle' | 'saving' | 'error';
-
-const loadAppState = async (): Promise<LoadState> => {
-  await initializeStorage();
-  const [preferences, profiles, sessions, progress, weightEntries, activeWorkout] = await Promise.all([
-    getPreferences(),
-    listUserProfiles(),
-    listWorkoutSessions(),
-    listExerciseProgress(),
-    listWeightEntries(),
-    getActiveWorkout(),
-  ]);
-  return {
-    preferences,
-    profiles: profiles.length > 0 ? profiles : [...seedUsers],
-    sessions,
-    progress,
-    weightEntries,
-    activeWorkout,
-  };
 };
 
 function RouteFrame({ children }: { children: ReactNode }) {
@@ -216,18 +158,35 @@ function RouteFrame({ children }: { children: ReactNode }) {
 function AppController() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [loading, setLoading] = useState(true);
-  const [fatalError, setFatalError] = useState<string | null>(null);
-  const [preferences, setPreferences] = useState<AppPreferences | null>(null);
-  const [profiles, setProfiles] = useState<UserProfile[]>([...seedUsers]);
-  const [sessions, setSessions] = useState<WorkoutSession[]>([]);
-  const [progress, setProgress] = useState<ExerciseProgressRecord[]>([]);
-  const [weightEntries, setWeightEntries] = useState<WeightEntry[]>([]);
-  const [activeWorkout, setActiveWorkoutState] = useState<ActiveWorkoutState | null>(null);
-  const activeWorkoutRef = useRef<ActiveWorkoutState | null>(null);
-  const [now, setNow] = useState(0);
+  const {
+    loading,
+    fatalError,
+    preferences,
+    profiles,
+    sessions,
+    progress,
+    weightEntries,
+    activeWorkout,
+    recoveryOpen,
+    setRecoveryOpen,
+    setPreferences,
+    addWeightEntry: appendWeightEntry,
+    setActiveWorkout,
+    refreshState,
+  } = useAppBootstrap();
+  const {
+    persistenceState,
+    persistActiveWorkout: persistActive,
+    clearActiveWorkout,
+    getActiveWorkout: getCurrentWorkout,
+    waitForPendingWrites,
+    retryPersistence,
+  } = useActiveWorkoutController({
+    activeWorkout,
+    onActiveWorkoutChange: setActiveWorkout,
+  });
+  const [calendarNow, setCalendarNow] = useState(() => Date.now());
   const [toast, setToast] = useState<string | null>(null);
-  const [recoveryOpen, setRecoveryOpen] = useState(false);
   const [selectedSessionDetail, setSelectedSessionDetail] = useState<WorkoutSession | null>(null);
   const [completionOpen, setCompletionOpen] = useState(false);
   const [completionUserId, setCompletionUserId] = useState<UserId | null>(null);
@@ -235,54 +194,11 @@ function AppController() {
     ...EMPTY_WORKOUT_FEEDBACK,
   });
   const [savingCompletion, setSavingCompletion] = useState(false);
-  const [persistenceState, setPersistenceState] = useState<PersistenceState>('idle');
-  const activeWriteQueueRef = useRef<Promise<void>>(Promise.resolve());
-  const persistSequenceRef = useRef(0);
   const online = useOnlineStatus();
 
-  const refreshState = useCallback(async () => {
-    const next = await loadAppState();
-    setPreferences(next.preferences);
-    setProfiles(next.profiles);
-    setSessions(next.sessions);
-    setProgress(next.progress);
-    setWeightEntries(next.weightEntries);
-    activeWorkoutRef.current = next.activeWorkout;
-    setActiveWorkoutState(next.activeWorkout);
-    setRecoveryOpen(next.activeWorkout !== null);
-  }, []);
-
   useEffect(() => {
-    let cancelled = false;
-    void loadAppState()
-      .then((next) => {
-        if (cancelled) return;
-        setPreferences(next.preferences);
-        setProfiles(next.profiles);
-        setSessions(next.sessions);
-        setProgress(next.progress);
-        setWeightEntries(next.weightEntries);
-        activeWorkoutRef.current = next.activeWorkout;
-        setActiveWorkoutState(next.activeWorkout);
-        setRecoveryOpen(next.activeWorkout !== null);
-        setNow(Date.now());
-      })
-      .catch((error: unknown) => {
-        if (!cancelled) {
-          setFatalError(error instanceof Error ? error.message : 'Não foi possível abrir os dados locais.');
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    const interval = window.setInterval(() => setNow(Date.now()), activeWorkout ? 1_000 : 60_000);
-    const sync = () => setNow(Date.now());
+    const sync = () => setCalendarNow(Date.now());
+    const interval = window.setInterval(sync, 60_000);
     document.addEventListener('visibilitychange', sync);
     window.addEventListener('focus', sync);
     return () => {
@@ -290,7 +206,7 @@ function AppController() {
       document.removeEventListener('visibilitychange', sync);
       window.removeEventListener('focus', sync);
     };
-  }, [activeWorkout]);
+  }, []);
 
   useEffect(() => {
     if (!toast) return undefined;
@@ -315,55 +231,19 @@ function AppController() {
   });
 
   const selectedUserId = preferences?.lastUserId ?? null;
-  const selectedUser = profiles.find((profile) => profile.id === selectedUserId) ?? null;
-  const userSessions = useMemo(
-    () => sessions.filter((session) => session.userId === selectedUserId && session.status === 'completed'),
-    [selectedUserId, sessions],
-  );
-  const userProgress = useMemo(
-    () => progress.filter((record) => record.userId === selectedUserId),
-    [progress, selectedUserId],
-  );
-  const userWeightEntries = useMemo(
-    () =>
-      [...weightEntries]
-        .filter((entry) => entry.userId === selectedUserId)
-        .sort(
-          (left, right) => left.recordedAt - right.recordedAt || left.createdAt - right.createdAt,
-        ),
-    [selectedUserId, weightEntries],
-  );
-  const currentWeightKg = userWeightEntries.at(-1)?.weightKg ?? selectedUser?.weightKg ?? null;
-  const currentUser = selectedUser && currentWeightKg !== null
-    ? { ...selectedUser, weightKg: currentWeightKg }
-    : selectedUser;
-
-  const persistActive = useCallback((next: ActiveWorkoutState): Promise<boolean> => {
-    activeWorkoutRef.current = next;
-    setActiveWorkoutState(next);
-    const sequence = ++persistSequenceRef.current;
-    setPersistenceState('saving');
-
-    const result = activeWriteQueueRef.current
-      .then(() => saveActiveWorkout(next))
-      .then(() => {
-        if (sequence === persistSequenceRef.current) setPersistenceState('idle');
-        return true;
-      })
-      .catch(() => {
-        if (sequence === persistSequenceRef.current) setPersistenceState('error');
-        return false;
-      });
-
-    activeWriteQueueRef.current = result.then(() => undefined);
-    return result;
-  }, []);
+  const {
+    selectedUser,
+    currentUser,
+    userSessions,
+    userProgress,
+    userWeightEntries,
+  } = useSelectedUserData({ selectedUserId, profiles, sessions, progress, weightEntries });
 
   const updatePreference = useCallback(async (patch: Partial<Omit<AppPreferences, 'id' | 'updatedAt'>>) => {
     const next = await updatePreferences(patch);
     setPreferences(next);
     return next;
-  }, []);
+  }, [setPreferences]);
 
   const handleAddWeightEntry = useCallback(
     async (weightKg: number, recordedAt: number) => {
@@ -371,9 +251,9 @@ function AppController() {
         throw new Error('Selecione um perfil antes de registrar o peso.');
       }
       const entry = await addWeightEntry({ userId: selectedUserId, weightKg, recordedAt });
-      setWeightEntries((current) => [...current, entry]);
+      appendWeightEntry(entry);
     },
-    [selectedUserId],
+    [appendWeightEntry, selectedUserId],
   );
 
   const handleSelectProfile = useCallback(
@@ -386,7 +266,7 @@ function AppController() {
 
   const handleStart = useCallback(
     async (template: WorkoutTemplate, duo = false) => {
-      if (activeWorkoutRef.current) {
+      if (getCurrentWorkout()) {
         setRecoveryOpen(true);
         setToast('Conclua ou descarte o treino em andamento antes de iniciar outro.');
         return;
@@ -415,23 +295,20 @@ function AppController() {
       setRecoveryOpen(false);
       void navigate('/active');
     },
-    [navigate, persistActive, preferences?.soundEnabled, sessions],
+    [getCurrentWorkout, navigate, persistActive, preferences?.soundEnabled, sessions, setRecoveryOpen],
   );
 
   const discardCurrent = useCallback(async () => {
-    await activeWriteQueueRef.current;
+    await waitForPendingWrites();
     await discardActiveWorkout();
-    persistSequenceRef.current += 1;
-    setPersistenceState('idle');
-    activeWorkoutRef.current = null;
-    setActiveWorkoutState(null);
+    clearActiveWorkout();
     setRecoveryOpen(false);
     setToast('Treino em andamento descartado.');
     void navigate('/today');
-  }, [navigate]);
+  }, [clearActiveWorkout, navigate, setRecoveryOpen, waitForPendingWrites]);
 
   const requestCompletion = useCallback(() => {
-    const current = activeWorkoutRef.current;
+    const current = getCurrentWorkout();
     if (!current) return;
     const userId = current.activeUserId;
     const currentSession = current.sessions[userId];
@@ -444,11 +321,11 @@ function AppController() {
       ...(current.sessions[userId]?.feedback ?? EMPTY_WORKOUT_FEEDBACK),
     });
     setCompletionOpen(true);
-  }, []);
+  }, [getCurrentWorkout]);
 
   const confirmCompletion = useCallback(
     async (feedback: WorkoutFeedback) => {
-      const current = activeWorkoutRef.current;
+      const current = getCurrentWorkout();
       const userId = completionUserId;
       const currentSession = userId ? current?.sessions[userId] : undefined;
       if (!current || !userId || !currentSession) return;
@@ -495,10 +372,7 @@ function AppController() {
         }
 
         await completeActiveWorkout();
-        persistSequenceRef.current += 1;
-        setPersistenceState('idle');
-        activeWorkoutRef.current = null;
-        setActiveWorkoutState(null);
+        clearActiveWorkout();
         setCompletionOpen(false);
         setCompletionUserId(null);
         setRecoveryOpen(false);
@@ -511,7 +385,7 @@ function AppController() {
         setSavingCompletion(false);
       }
     },
-    [completionUserId, navigate, persistActive, profiles, refreshState],
+    [clearActiveWorkout, completionUserId, getCurrentWorkout, navigate, persistActive, profiles, refreshState, setRecoveryOpen],
   );
 
   if (loading) {
@@ -528,7 +402,7 @@ function AppController() {
         <div>
           <span className={styles.brandMark}><BrandMark /></span>
           <h1>Não foi possível abrir o Ritmo Duo</h1>
-          <p>{fatalError ?? 'As preferências locais não foram carregadas.'}</p>
+          <p>Não foi possível acessar os dados locais necessários para iniciar o aplicativo.</p>
           <Button leadingIcon={<RotateCcw />} onClick={() => window.location.reload()}>Tentar novamente</Button>
         </div>
       </main>
@@ -548,20 +422,23 @@ function AppController() {
     );
   }
 
-  const currentProgramWeek = calculateProgramWeekFromHistory(sessions, selectedUser.id, now);
+  const currentProgramWeek = calculateProgramWeekFromHistory(
+    sessions,
+    selectedUser.id,
+    calendarNow,
+  );
   const includeOptionalThirdSet = isReadyForOptionalVolume(sessions);
   const plan = getWorkoutPlan(selectedUser.id);
   const selectedWorkoutDetail =
     plan.templates.find(
       (template) => template.id === new URLSearchParams(location.search).get('ficha'),
     ) ?? null;
-  const nextWorkout = suggestedWorkout(plan.templates, userSessions, now);
-  const weekStart = getWeekStart(now);
+  const nextWorkout = suggestedWorkout(plan.templates, userSessions, calendarNow);
+  const weekStart = getWeekStart(calendarNow);
   const completedThisWeek = userSessions.filter((session) => session.startedAt >= weekStart).length;
-  const activeElapsed = activeWorkout ? formatClock(getElapsedSeconds(activeWorkout.startedAt, now)) : undefined;
-  const currentDate = new Date(now);
+  const currentDate = new Date(calendarNow);
   const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getTime();
-  const recentStart = now - 28 * 24 * 60 * 60 * 1_000;
+  const recentStart = calendarNow - 28 * 24 * 60 * 60 * 1_000;
   const progressRows = userProgress.map((record) => ({
     exerciseName: getExercise(record.exerciseId)?.name ?? record.exerciseId,
     currentLoadKg: record.lastLoadKg,
@@ -569,213 +446,20 @@ function AppController() {
     trendPercent: 0,
   }));
 
-  let activeScreen: ReactNode = null;
-  if (activeWorkout) {
-    const activeSession = activeWorkout.sessions[activeWorkout.activeUserId];
-    const activeTemplate = activeSession ? getWorkoutTemplateById(activeSession.workoutTemplateId) : undefined;
-    const safeIndex = activeTemplate && activeSession
-      ? Math.min(activeSession.currentExerciseIndex, activeTemplate.exercises.length - 1)
-      : 0;
-    const basePrescription = activeTemplate?.exercises[safeIndex];
-    const prescription = basePrescription && activeSession
-      ? getEffectivePrescription(basePrescription, activeSession.userId, activeSession.programWeek)
-      : undefined;
-    const exerciseSession = activeSession?.exercises.find((item) => item.prescriptionId === prescription?.id);
-    const exercise = prescription && prescription.kind !== 'cardio' ? getExercise(prescription.exerciseId) : undefined;
-    const activeUserSessions = sessions.filter(
-      (session) => session.userId === activeWorkout.activeUserId && session.status === 'completed',
-    );
-    const previousSets = exerciseSession
-      ? activeUserSessions
-          .flatMap((session) => session.exercises)
-          .find(
-            (item) =>
-              item.exerciseId === exerciseSession.exerciseId &&
-              item.sets.some((set) => set.completed),
-          )
-          ?.sets.filter((set) => set.completed)
-      : undefined;
-    const cardioElapsed = activeSession?.cardio?.startedAt
-      ? getElapsedSeconds(activeSession.cardio.startedAt, now, activeSession.cardio.completedAt)
-      : activeSession?.cardio?.durationSeconds ?? 0;
-    const progressionSuggestion =
-      prescription?.kind === 'strength' && exerciseSession && exercise
-        ? evaluateDoubleProgression(prescription, exerciseSession.sets, {
-            equipment:
-              exercise.equipmentTypes.includes('bodyweight') &&
-              exerciseSession.sets.every((set) => set.loadKg === null || set.loadKg === 0)
-                ? 'bodyweight'
-                : progressionEquipment(exercise.equipmentTypes),
-          })
-        : undefined;
-
-    const changeSession = (mutate: (session: WorkoutSession) => WorkoutSession) => {
-      const current = activeWorkoutRef.current;
-      const currentSession = current?.sessions[current.activeUserId];
-      if (!current || !currentSession) return null;
-      const nextSession = mutate(currentSession);
-      return {
-        ...current,
-        sessions: { ...current.sessions, [current.activeUserId]: nextSession },
-        updatedAt: Date.now(),
-      };
-    };
-
-    if (activeTemplate && activeSession && prescription) {
-      activeScreen = (
-        <ActiveWorkoutScreen
-          state={activeWorkout}
-          profiles={profiles}
-          template={activeTemplate}
-          prescription={prescription}
-          exercise={exercise}
-          exerciseSession={exerciseSession}
-          previousSets={previousSets}
-          restTimer={activeWorkout.restTimer}
-          elapsedLabel={formatClock(getElapsedSeconds(activeWorkout.startedAt, now))}
-          cardioElapsedSeconds={cardioElapsed}
-          online={online}
-          progressionSuggestion={progressionSuggestion}
-          onBack={() => void navigate('/today')}
-          onSwitchUser={(userId) => {
-            const current = activeWorkoutRef.current;
-            if (current) void persistActive(switchActiveWorkoutUser(current, userId));
-          }}
-          onSetChange={(setId, changes) => {
-            const current = activeWorkoutRef.current;
-            const currentSession = current?.sessions[current.activeUserId];
-            const targetExercise = currentSession?.exercises.find((item) => item.prescriptionId === prescription.id);
-            const targetSet = targetExercise?.sets.find((set) => set.id === setId);
-            if (current && currentSession && targetExercise && targetSet) {
-              const exerciseAllowsBodyweight = exercise?.equipmentTypes.includes('bodyweight') ?? false;
-              const measure = prescription.kind === 'carry' ? changes.durationSeconds : changes.repetitions;
-              const minimumEffort = prescription.kind === 'carry' ? 1 : 0;
-              const effortValid =
-                changes.rir !== null &&
-                Number.isInteger(changes.rir) &&
-                changes.rir >= minimumEffort &&
-                changes.rir <= 10;
-              const valid =
-                (exerciseAllowsBodyweight || (changes.loadKg !== null && changes.loadKg > 0)) &&
-                measure !== null &&
-                measure > 0 &&
-                effortValid;
-              const patch = targetSet.completed && !valid
-                ? { ...changes, completed: false, completedAt: null }
-                : changes;
-              let next = updateActiveWorkoutSet(
-                current,
-                current.activeUserId,
-                targetExercise.id,
-                setId,
-                patch,
-              );
-              if (!valid && next.restTimer?.setSessionId === setId) {
-                next = { ...next, restTimer: null, updatedAt: Date.now() };
-              }
-              void persistActive(next);
-            }
-          }}
-          onSetComplete={(setId) => {
-            if (preferences.soundEnabled) void unlockFeedbackAudio();
-            const current = activeWorkoutRef.current;
-            const currentSession = current?.sessions[current.activeUserId];
-            const targetExercise = currentSession?.exercises.find((item) => item.prescriptionId === prescription.id);
-            const targetSet = targetExercise?.sets.find((set) => set.id === setId);
-            if (!current || !currentSession || !targetExercise || !targetSet) return;
-            const next = targetSet.completed
-              ? {
-                  ...updateActiveWorkoutSet(current, current.activeUserId, targetExercise.id, setId, {
-                    completed: false,
-                    completedAt: null,
-                  }),
-                  restTimer: current.restTimer?.setSessionId === setId ? null : current.restTimer,
-                }
-              : {
-                  ...completeActiveWorkoutSet(current, current.activeUserId, targetExercise.id, setId),
-                  restTimer: createRestTimer({
-                    durationSeconds: prescription.kind === 'cardio' ? 0 : prescription.restSeconds,
-                    userId: current.activeUserId,
-                    exerciseSessionId: targetExercise.id,
-                    setSessionId: setId,
-                  }),
-                };
-            void persistActive(next);
-          }}
-          onPreviousExercise={() => {
-            const next = changeSession((session) => ({
-              ...session,
-              currentExerciseIndex: Math.max(0, session.currentExerciseIndex - 1),
-              updatedAt: Date.now(),
-            }));
-            if (next) void persistActive(next);
-          }}
-          onNextExercise={() => {
-            const next = changeSession((session) => ({
-              ...session,
-              currentExerciseIndex: Math.min(activeTemplate.exercises.length - 1, session.currentExerciseIndex + 1),
-              updatedAt: Date.now(),
-            }));
-            if (next) void persistActive(next);
-          }}
-          onFinish={requestCompletion}
-          onRestAdjust={(seconds) => {
-            const current = activeWorkoutRef.current;
-            if (current?.restTimer) void persistActive({ ...current, restTimer: adjustRestDuration(current.restTimer, seconds), updatedAt: Date.now() });
-          }}
-          onRestSkip={() => {
-            const current = activeWorkoutRef.current;
-            if (current) void persistActive({ ...current, restTimer: null, updatedAt: Date.now() });
-          }}
-          onRestFinished={() => {
-            const current = activeWorkoutRef.current;
-            if (!current?.restTimer) return;
-            notifyRestComplete({ vibrate: true, sound: preferences.soundEnabled });
-            setToast('Descanso concluído.');
-            void persistActive({ ...current, restTimer: null, updatedAt: Date.now() });
-          }}
-          onCardioStart={() => {
-            if (activeSession.cardio?.startedAt || activeSession.cardio?.completedAt) return;
-            const next = changeSession((session) => ({
-              ...session,
-              cardio: session.cardio ? { ...session.cardio, startedAt: Date.now() } : null,
-              updatedAt: Date.now(),
-            }));
-            if (next) void persistActive(next);
-          }}
-          onCardioUpdate={(changes) => {
-            const next = changeSession((session) => ({
-              ...session,
-              cardio: session.cardio ? { ...session.cardio, ...changes } : null,
-              updatedAt: Date.now(),
-            }));
-            if (next) void persistActive(next);
-          }}
-          onCardioComplete={() => {
-            if (activeSession.cardio?.completedAt) return;
-            const completedAt = Date.now();
-            const next = changeSession((session) => ({
-              ...session,
-              cardio: session.cardio
-                ? {
-                    ...session.cardio,
-                    completedAt,
-                    durationSeconds: session.cardio.startedAt
-                      ? getElapsedSeconds(session.cardio.startedAt, completedAt)
-                      : session.cardio.durationSeconds,
-                  }
-                : null,
-              updatedAt: completedAt,
-            }));
-            if (next) {
-              void persistActive(next);
-              setToast('Cardio concluído.');
-            }
-          }}
-        />
-      );
-    }
-  }
+  const activeScreen = activeWorkout ? (
+    <ActiveWorkoutRoute
+      state={activeWorkout}
+      profiles={profiles}
+      sessions={sessions}
+      online={online}
+      soundEnabled={preferences.soundEnabled}
+      getCurrentWorkout={getCurrentWorkout}
+      onPersistWorkout={persistActive}
+      onBack={() => void navigate('/today')}
+      onRequestCompletion={requestCompletion}
+      onToast={setToast}
+    />
+  ) : null;
 
   return (
     <>
@@ -790,7 +474,7 @@ function AppController() {
                 workout={nextWorkout}
                 lastSession={userSessions[0]}
                 completedThisWeek={completedThisWeek}
-                activeWorkoutElapsed={activeElapsed}
+                activeWorkoutStartedAt={activeWorkout?.startedAt}
                 activeWorkoutCode={
                   activeWorkout?.sessions[selectedUser.id]?.workoutCode ??
                   activeWorkout?.sessions[activeWorkout.activeUserId]?.workoutCode
@@ -879,7 +563,7 @@ function AppController() {
                 }}
                 onClearHistory={() => {
                   if (!window.confirm(`Apagar todo o histórico de ${selectedUser.name}? Esta ação não pode ser desfeita.`)) return;
-                  void Promise.all([clearWorkoutHistory(selectedUser.id), clearExerciseProgress(selectedUser.id)])
+                  void clearUserWorkoutHistory(selectedUser.id)
                     .then(async () => {
                       await refreshState();
                       setToast('Histórico apagado.');
@@ -912,7 +596,7 @@ function AppController() {
                 <span>{activeWorkout.mode === 'duo' ? 'Lucas + Geovanna' : profiles.find((profile) => profile.id === activeWorkout.activeUserId)?.name}</span>
                 <b>Treino {activeWorkout.sessions[activeWorkout.activeUserId]?.workoutCode}</b>
               </div>
-              <strong>{formatClock(getElapsedSeconds(activeWorkout.startedAt, now))}</strong>
+              <strong><WorkoutElapsedTime startedAt={activeWorkout.startedAt} /></strong>
             </div>
             <div className={styles.recoveryActions}>
               <Button fullWidth onClick={() => { if (preferences.soundEnabled) void unlockFeedbackAudio(); setRecoveryOpen(false); void navigate('/active'); }}>Continuar treino</Button>
@@ -967,10 +651,7 @@ function AppController() {
           <span>Alterações ainda não salvas neste aparelho.</span>
           <button
             type="button"
-            onClick={() => {
-              const current = activeWorkoutRef.current;
-              if (current) void persistActive(current);
-            }}
+            onClick={() => void retryPersistence()}
           >
             Tentar novamente
           </button>
@@ -983,8 +664,10 @@ function AppController() {
 
 export function App() {
   return (
-    <HashRouter>
-      <AppController />
-    </HashRouter>
+    <AppErrorBoundary>
+      <HashRouter>
+        <AppController />
+      </HashRouter>
+    </AppErrorBoundary>
   );
 }

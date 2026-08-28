@@ -102,6 +102,7 @@
 
 .weightForm label {
   display: grid;
+  min-inline-size: 0;
   gap: var(--space-2);
   color: var(--color-text-secondary);
   font-size: var(--text-xs);
@@ -109,6 +110,7 @@
 
 .weightForm input {
   inline-size: 100%;
+  min-inline-size: 0;
   padding-inline: var(--space-3);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -290,7 +292,7 @@
   font-family: var(--font-numeric);
 }
 
-@media (max-width: 370px) {
+@media (max-width: 30rem) {
   .weightForm {
     grid-template-columns: 1fr;
   }

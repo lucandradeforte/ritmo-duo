@@ -2,6 +2,7 @@ import { CalendarCheck2, ChevronRight, Flame, History } from 'lucide-react';
 import type { UserProfile, WorkoutSession, WorkoutTemplate } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Surface';
+import { WorkoutElapsedTime } from '@/features/active-workout/WorkoutElapsedTime';
 import { WorkoutCard } from './WorkoutCard';
 import styles from './TodayScreen.module.css';
 
@@ -10,7 +11,7 @@ interface TodayScreenProps {
   workout: WorkoutTemplate;
   lastSession?: WorkoutSession;
   completedThisWeek: number;
-  activeWorkoutElapsed?: string;
+  activeWorkoutStartedAt?: number;
   activeWorkoutCode?: WorkoutSession['workoutCode'];
   onStart: () => void;
   onStartDuo: () => void;
@@ -22,7 +23,7 @@ export function TodayScreen({
   workout,
   lastSession,
   completedThisWeek,
-  activeWorkoutElapsed,
+  activeWorkoutStartedAt,
   activeWorkoutCode,
   onStart,
   onStartDuo,
@@ -38,11 +39,14 @@ export function TodayScreen({
         <div className={styles.avatar}>{user.name.slice(0, 1)}</div>
       </header>
 
-      {activeWorkoutElapsed ? (
+      {activeWorkoutStartedAt !== undefined ? (
         <Card className={styles.active} tone="timer">
           <div>
             <strong>Treino em andamento</strong>
-            <span className={styles.activeMetadata}>Treino {activeWorkoutCode ?? workout.code} · {activeWorkoutElapsed}</span>
+            <span className={styles.activeMetadata}>
+              Treino {activeWorkoutCode ?? workout.code} ·{' '}
+              <WorkoutElapsedTime startedAt={activeWorkoutStartedAt} />
+            </span>
           </div>
           <Button variant="timer" trailingIcon={<ChevronRight />} onClick={onContinue}>Continuar</Button>
         </Card>

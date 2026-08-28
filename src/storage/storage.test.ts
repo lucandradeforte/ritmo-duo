@@ -1,7 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { getWorkoutTemplate } from '@/data';
+import type { UserId } from '@/types';
 import { createActiveWorkout } from '@/utils';
 import {
+  addWeightEntry,
+  clearUserWorkoutHistory,
   closeStorage,
   completeActiveWorkout,
   createBackup,
@@ -11,8 +14,8 @@ import {
   getPreferences,
   importBackup,
   initializeStorage,
+  listExerciseProgress,
   listUserProfiles,
-  addWeightEntry,
   listWeightEntries,
   listWorkoutSessions,
   parseBackup,
@@ -20,6 +23,40 @@ import {
   serializeBackup,
   updatePreferences,
 } from './index';
+
+const completeWorkoutForUser = async (userId: UserId, startedAt: number): Promise<string> => {
+  const template = getWorkoutTemplate(userId, 'A');
+  if (!template) throw new Error(`Ficha A de ${userId} não encontrada`);
+
+  const activeWorkout = createActiveWorkout([template], { now: startedAt });
+  const session = activeWorkout.sessions[userId];
+  const exercise = session?.exercises[0];
+  const firstSet = exercise?.sets[0];
+  if (!session || !exercise || !firstSet) {
+    throw new Error(`Sessão de teste de ${userId} incompleta`);
+  }
+
+  firstSet.loadKg = 10;
+  firstSet.repetitions = 10;
+  firstSet.rir = 3;
+  firstSet.completed = true;
+  firstSet.completedAt = startedAt + 30_000;
+  activeWorkout.sessions[userId] = {
+    ...session,
+    cardio: session.cardio
+      ? {
+          ...session.cardio,
+          completedAt: startedAt + 50_000,
+          durationSeconds: 300,
+        }
+      : null,
+    feedback: { feeling: 'good', overallRpe: 6, notes: '' },
+  };
+
+  await saveActiveWorkout(activeWorkout);
+  await completeActiveWorkout(startedAt + 60_000);
+  return exercise.exerciseId;
+};
 
 describe.sequential('persistência IndexedDB', () => {
   beforeEach(async () => {
@@ -115,6 +152,40 @@ describe.sequential('persistência IndexedDB', () => {
     await expect(completeActiveWorkout(90_000)).rejects.toThrow('participantes com treino pendente');
     await expect(getActiveWorkout()).resolves.toMatchObject({ mode: 'duo' });
     await expect(listWorkoutSessions()).resolves.toHaveLength(0);
+  });
+
+  it('limpa histórico e progresso de um perfil em uma única operação isolada', async () => {
+    const lucasExerciseId = await completeWorkoutForUser('lucas', 100_000);
+    const geovannaExerciseId = await completeWorkoutForUser('geovanna', 200_000);
+    await addWeightEntry({ userId: 'lucas', weightKg: 109.4, recordedAt: 250_000 }, 260_000);
+    await updatePreferences({ lastUserId: 'lucas', theme: 'dark' }, 270_000);
+
+    const activeTemplate = getWorkoutTemplate('lucas', 'B');
+    if (!activeTemplate) throw new Error('Ficha B do Lucas não encontrada');
+    const activeWorkout = createActiveWorkout([activeTemplate], { now: 300_000 });
+    await saveActiveWorkout(activeWorkout);
+
+    await clearUserWorkoutHistory('lucas');
+
+    await expect(listWorkoutSessions({ userId: 'lucas' })).resolves.toHaveLength(0);
+    await expect(listExerciseProgress('lucas')).resolves.toHaveLength(0);
+    await expect(getExerciseProgress('lucas', lucasExerciseId)).resolves.toBeUndefined();
+
+    await expect(listWorkoutSessions({ userId: 'geovanna' })).resolves.toHaveLength(1);
+    await expect(getExerciseProgress('geovanna', geovannaExerciseId)).resolves.toMatchObject({
+      userId: 'geovanna',
+      exerciseId: geovannaExerciseId,
+    });
+    await expect(listWeightEntries('lucas')).resolves.toMatchObject([
+      { weightKg: 109.4, recordedAt: 250_000 },
+    ]);
+    await expect(getPreferences()).resolves.toMatchObject({
+      lastUserId: 'lucas',
+      theme: 'dark',
+      updatedAt: 270_000,
+    });
+    await expect(getActiveWorkout()).resolves.toMatchObject({ id: activeWorkout.id });
+    await expect(listUserProfiles()).resolves.toHaveLength(2);
   });
 
   it('exporta, valida e restaura backup versionado', async () => {

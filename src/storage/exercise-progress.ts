@@ -20,24 +20,3 @@ export const listExerciseProgress = async (
     ? database.getAllFromIndex('exerciseProgress', 'by-user', userId)
     : database.getAll('exerciseProgress');
 };
-
-export const saveExerciseProgress = async (
-  progress: ExerciseProgressRecord,
-): Promise<void> => {
-  const database = await getDatabase();
-  await database.put('exerciseProgress', {
-    ...progress,
-    id: exerciseProgressId(progress.userId, progress.exerciseId),
-  });
-};
-
-export const clearExerciseProgress = async (userId?: UserId): Promise<number> => {
-  const database = await getDatabase();
-  const transaction = database.transaction('exerciseProgress', 'readwrite');
-  const records = userId
-    ? await transaction.store.index('by-user').getAll(userId)
-    : await transaction.store.getAll();
-  await Promise.all(records.map((record) => transaction.store.delete(record.id)));
-  await transaction.done;
-  return records.length;
-};

@@ -6,9 +6,11 @@ Para entender a aplicação antes de alterar código, leia primeiro [Arquitetura
 
 ## Pré-requisitos
 
-- Node.js 22.
+- Node.js 22.22.2 ou mais recente dentro da linha 22.
 - pnpm 11.19.0, conforme declarado em **package.json**.
 - Um navegador moderno para desenvolvimento local.
+
+Com nvm, execute `nvm use` na raiz do repositório para aplicar automaticamente a versão declarada em **.nvmrc**.
 
 O repositório usa pnpm e possui lockfile. Não troque para npm nem regenere o lockfile sem necessidade explícita.
 
@@ -60,7 +62,9 @@ GITHUB_ACTIONS=true GITHUB_REPOSITORY=lucandradeforte/ritmo-duo pnpm run build
 
 ## Convenções de arquitetura
 
-- **AppController** em **src/app/App.tsx** orquestra estado global de interface, rotas, persistência de sessão ativa e modais globais.
+- **AppController** em **src/app/App.tsx** orquestra estado global de interface, rotas e modais globais.
+- **useAppBootstrap** carrega e atualiza o estado agregado; **useActiveWorkoutController** preserva a fila serializada; **ActiveWorkoutRoute** adapta esse controller à tela controlada.
+- **AppErrorBoundary** envolve o router e oferece fallback seguro para falhas de renderização ou imports lazy.
 - **features** recebem dados e callbacks; não conhecem IndexedDB diretamente.
 - **data** contém os valores de domínio e a prescrição real.
 - **utils** contém regras puras e testáveis.
@@ -104,6 +108,8 @@ Para mudar série, cardio, modo dupla, timer, histórico, progresso, IndexedDB o
 4. Preserve timers baseados em timestamps.
 5. Mantenha a conclusão de todas as sessões, do progresso e da remoção do treino ativo em transação.
 6. Atualize testes com fake-indexeddb.
+
+A ação de apagar histórico deve usar **clearUserWorkoutHistory(userId)**. Ela remove sessões e progresso daquele perfil em uma única transação e não inclui pesagens, perfis, preferências ou treino ativo.
 
 ### Evoluir o schema
 
@@ -153,6 +159,25 @@ Ao mudar comportamento, comece com o teste mais próximo:
 | Fluxo de interface | src/app/App.test.tsx e testes de features |
 | PWA | src/pwa/*.test.ts |
 
+Os relógios do treino ativo devem ser testados com timers falsos e continuar derivados de timestamps. Evite colocar ticks frequentes no **AppController** ou usar contador incremental como fonte de verdade.
+
+### Testes E2E
+
+O projeto usa Playwright com Chromium em dois perfis: desktop e mobile. O runner inicia o Vite localmente, mantém o base path raiz para o ambiente de teste e executa o smoke de selecionar perfil e iniciar um treino.
+
+```bash
+pnpm exec playwright install chromium
+pnpm run test:e2e
+```
+
+Em uma máquina Linux recém-configurada, instale também as bibliotecas exigidas pelo Chromium uma única vez:
+
+```bash
+pnpm exec playwright install-deps chromium
+```
+
+O comando solicita a senha de sudo no terminal. O Chromium é baixado uma única vez para o cache local. No CI, o job **Testes E2E** instala o navegador e suas dependências de sistema antes de executar a mesma suíte. Modal de exercício, pesagem, troca de perfil e retomada após recarregar são os próximos fluxos prioritários.
+
 Prefira testar resultado observável e regras de domínio. Em React Testing Library, use consultas próximas da interação real, como papel, label ou texto.
 
 ## Gates obrigatórios
@@ -192,17 +217,18 @@ Emulação não substitui essa validação.
 
 ## Publicação
 
-O workflow **.github/workflows/deploy.yml** executa em push para main:
+O workflow **.github/workflows/deploy.yml** executa a mesma validação em pull requests e em push para main:
 
 ~~~text
 pnpm install com lockfile congelado
   → lint
   → testes
   → build
-  → deploy no GitHub Pages
+  → testes E2E em Chromium
+  → configuração, artefato e deploy no GitHub Pages somente fora de pull requests
 ~~~
 
-Não versione a pasta **dist**. O base path é calculado pelo repositório em GitHub Actions.
+O job de deploy aceita apenas push na **main** ou **workflow_dispatch**. Pull requests nunca configuram Pages, enviam o artefato de publicação ou executam deploy. Não versione a pasta **dist**. O base path é calculado pelo repositório em GitHub Actions.
 
 Não faça commit, push, reset, rebase ou operações destrutivas de Git sem solicitação explícita.
 

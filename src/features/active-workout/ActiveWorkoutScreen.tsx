@@ -21,6 +21,7 @@ import { ExerciseDetail } from '@/features/exercises/ExerciseDetail';
 import { ExerciseSetRow } from './ExerciseSetRow';
 import { RestTimer } from './RestTimer';
 import { CardioTracker } from './CardioTracker';
+import { WorkoutElapsedTime } from './WorkoutElapsedTime';
 import styles from './ActiveWorkoutScreen.module.css';
 
 interface ActiveWorkoutScreenProps {
@@ -32,8 +33,6 @@ interface ActiveWorkoutScreenProps {
   exerciseSession?: ExerciseSession;
   previousSets?: SetSession[];
   restTimer: RestTimerState | null;
-  elapsedLabel: string;
-  cardioElapsedSeconds: number;
   online: boolean;
   onBack: () => void;
   onSwitchUser: (userId: UserId) => void;
@@ -80,8 +79,6 @@ export function ActiveWorkoutScreen({
   exerciseSession,
   previousSets = [],
   restTimer,
-  elapsedLabel,
-  cardioElapsedSeconds,
   online,
   progressionSuggestion,
   onBack,
@@ -118,7 +115,10 @@ export function ActiveWorkoutScreen({
     <div className={styles.screen}>
       <header className={styles.header}>
         <button aria-label="Voltar" type="button" onClick={onBack}><ArrowLeft /></button>
-        <div><span>Treino {template.code}</span><strong className="numeric">{elapsedLabel}</strong></div>
+        <div>
+          <span>Treino {template.code}</span>
+          <strong className="numeric"><WorkoutElapsedTime startedAt={state.startedAt} /></strong>
+        </div>
         <div className={online ? styles.step : styles.offlineHeader}>
           {online ? `${currentIndex + 1}/${total}` : 'Offline'}
         </div>
@@ -179,7 +179,6 @@ export function ActiveWorkoutScreen({
           <CardioTracker
             prescription={prescription}
             session={activeSession.cardio}
-            elapsedSeconds={cardioElapsedSeconds}
             onStart={onCardioStart}
             onUpdate={onCardioUpdate}
             onComplete={onCardioComplete}

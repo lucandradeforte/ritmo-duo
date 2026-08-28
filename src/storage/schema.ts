@@ -10,12 +10,12 @@ import type {
   WorkoutSessionStatus,
 } from '@/types';
 
-export interface StorageMetadata {
+interface StorageMetadata {
   key: string;
   value: number | string;
 }
 
-export interface StoredActiveWorkout {
+interface StoredActiveWorkout {
   id: 'current';
   state: ActiveWorkoutState;
 }

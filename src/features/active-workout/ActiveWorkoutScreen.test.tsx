@@ -39,8 +39,6 @@ describe('histórico anterior por série', () => {
         exerciseSession={exerciseSession}
         previousSets={[previousSetTwo]}
         restTimer={null}
-        elapsedLabel="00:00"
-        cardioElapsedSeconds={0}
         online
         onBack={noop}
         onSwitchUser={noop}
@@ -103,8 +101,6 @@ describe('histórico anterior por série', () => {
               exercise={exercise}
               exerciseSession={exerciseSession}
               restTimer={null}
-              elapsedLabel="00:00"
-              cardioElapsedSeconds={0}
               online
               onBack={noop}
               onSwitchUser={noop}

@@ -3,6 +3,7 @@ name: Validar e publicar no GitHub Pages
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -11,7 +12,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: pages-${{ github.event.pull_request.number || 'deploy' }}
   cancel-in-progress: false
 
 jobs:
@@ -43,16 +44,43 @@ jobs:
         run: pnpm run build
 
       - name: Configurar GitHub Pages
+        if: github.event_name != 'pull_request'
         uses: actions/configure-pages@v5
 
       - name: Enviar artefato do site
+        if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v4
         with:
           path: dist
 
+  e2e:
+    name: Testes E2E
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar repositorio
+        uses: actions/checkout@v6
+
+      - name: Preparar pnpm e Node.js
+        uses: pnpm/setup@v2
+        with:
+          version: 11.19.0
+          runtime: node@22
+          cache: true
+          install: false
+
+      - name: Instalar dependencias
+        run: pnpm install --frozen-lockfile
+
+      - name: Instalar Chromium do Playwright
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Executar testes E2E
+        run: pnpm run test:e2e
+
   deploy:
     name: Publicar
-    needs: build
+    needs: [build, e2e]
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages

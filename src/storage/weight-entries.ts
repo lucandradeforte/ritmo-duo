@@ -2,7 +2,7 @@ import type { UserId, WeightEntry } from '@/types';
 import { createId } from '@/utils';
 import { getDatabase } from './database';
 
-export interface AddWeightEntryInput {
+interface AddWeightEntryInput {
   userId: UserId;
   weightKg: number;
   recordedAt: number;

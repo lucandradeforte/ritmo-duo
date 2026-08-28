@@ -2,12 +2,12 @@ import { Bike, Check, Gauge, Timer, TrendingUp } from 'lucide-react';
 import type { CardioPrescription, CardioSession } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Surface';
+import { useWorkoutElapsedSeconds } from './useWorkoutElapsedSeconds';
 import styles from './CardioTracker.module.css';
 
 interface CardioTrackerProps {
   prescription: CardioPrescription;
   session: CardioSession;
-  elapsedSeconds: number;
   onStart: () => void;
   onUpdate: (changes: Partial<CardioSession>) => void;
   onComplete: () => void;
@@ -31,25 +31,42 @@ function parseRpe(value: string): number | null {
   return Number.isInteger(result) && result >= 1 && result <= 10 ? result : null;
 }
 
-export function CardioTracker({ prescription, session, elapsedSeconds, onStart, onUpdate, onComplete }: CardioTrackerProps) {
+interface CardioLiveMetricsProps {
+  prescription: CardioPrescription;
+  session: CardioSession;
+  onStart: () => void;
+}
+
+function CardioLiveMetrics({ prescription, session, onStart }: CardioLiveMetricsProps) {
   const Icon = prescription.modality === 'bike' ? Bike : TrendingUp;
+  const elapsedSeconds = useWorkoutElapsedSeconds({
+    startedAt: session.startedAt,
+    completedAt: session.completedAt,
+    fallbackSeconds: session.durationSeconds ?? 0,
+  });
   const targetSeconds = session.targetDurationSeconds;
   const progress = Math.min(100, (elapsedSeconds / targetSeconds) * 100);
 
   return (
+    <Card className={styles.hero} tone="timer" padding="spacious">
+      <div className={styles.icon}><Icon aria-hidden="true" /></div>
+      <span>{prescription.modality === 'bike' ? 'Bicicleta' : 'Esteira'}</span>
+      <strong className="numeric">{formatTime(elapsedSeconds)}</strong>
+      <small>Meta {Math.round(targetSeconds / 60)}:00 · RPE {prescription.targetRpe.min}–{prescription.targetRpe.max}</small>
+      <div className={styles.progress} aria-label={`${Math.round(progress)}% da meta`}>
+        <span style={{ inlineSize: `${progress}%` }} />
+      </div>
+      {!session.startedAt ? (
+        <Button fullWidth variant="timer" leadingIcon={<Timer />} onClick={onStart}>Iniciar cardio</Button>
+      ) : null}
+    </Card>
+  );
+}
+
+export function CardioTracker({ prescription, session, onStart, onUpdate, onComplete }: CardioTrackerProps) {
+  return (
     <div className={styles.wrapper}>
-      <Card className={styles.hero} tone="timer" padding="spacious">
-        <div className={styles.icon}><Icon aria-hidden="true" /></div>
-        <span>{prescription.modality === 'bike' ? 'Bicicleta' : 'Esteira'}</span>
-        <strong className="numeric">{formatTime(elapsedSeconds)}</strong>
-        <small>Meta {Math.round(targetSeconds / 60)}:00 · RPE {prescription.targetRpe.min}–{prescription.targetRpe.max}</small>
-        <div className={styles.progress} aria-label={`${Math.round(progress)}% da meta`}>
-          <span style={{ inlineSize: `${progress}%` }} />
-        </div>
-        {!session.startedAt ? (
-          <Button fullWidth variant="timer" leadingIcon={<Timer />} onClick={onStart}>Iniciar cardio</Button>
-        ) : null}
-      </Card>
+      <CardioLiveMetrics prescription={prescription} session={session} onStart={onStart} />
 
       <div className={styles.inputs}>
         <label><span>Distância (km)</span><input inputMode="decimal" type="number" min="0" step="0.1" value={session.distanceKm ?? ''} onChange={(event) => onUpdate({ distanceKm: parseNumber(event.target.value) })} /></label>

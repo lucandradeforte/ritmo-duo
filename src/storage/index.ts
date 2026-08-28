@@ -6,4 +6,5 @@ export * from './migrations';
 export * from './preferences';
 export * from './users';
 export * from './weight-entries';
+export * from './workout-history';
 export * from './workout-sessions';

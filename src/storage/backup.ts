@@ -339,7 +339,7 @@ export const createBackup = async (exportedAt = Date.now()): Promise<BackupPaylo
 
 export const serializeBackup = (backup: BackupPayload): string => JSON.stringify(backup, null, 2);
 
-export const createBackupFile = async (): Promise<Blob> =>
+const createBackupFile = async (): Promise<Blob> =>
   new Blob([serializeBackup(await createBackup())], { type: 'application/json' });
 
 export const downloadBackup = async (fileName = 'treino-backup.json'): Promise<void> => {
