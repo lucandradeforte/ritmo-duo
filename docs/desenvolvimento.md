@@ -178,6 +178,8 @@ pnpm exec playwright install-deps chromium
 
 O comando solicita a senha de sudo no terminal. O Chromium é baixado uma única vez para o cache local. No CI, o job **Testes E2E** instala o navegador e suas dependências de sistema antes de executar a mesma suíte. Modal de exercício, pesagem, troca de perfil e retomada após recarregar são os próximos fluxos prioritários.
 
+Os E2E exercitam a aplicação sem registrar service worker: o Playwright define `RITMO_DUO_E2E=true` somente no servidor Vite dele. Isso evita que um cache de desenvolvimento interfira no estado isolado de cada teste. O PWA continua disponível no desenvolvimento manual; para validar cache e instalação, gere a build e use `pnpm run preview` em localhost ou HTTPS.
+
 Prefira testar resultado observável e regras de domínio. Em React Testing Library, use consultas próximas da interação real, como papel, label ou texto.
 
 ## Gates obrigatórios
@@ -229,6 +231,8 @@ pnpm install com lockfile congelado
 ~~~
 
 O job de deploy aceita apenas push na **main** ou **workflow_dispatch**. Pull requests nunca configuram Pages, enviam o artefato de publicação ou executam deploy. Não versione a pasta **dist**. O base path é calculado pelo repositório em GitHub Actions.
+
+Os jobs **build** e **e2e** executam em paralelo. Apenas o build grava o cache do pnpm, evitando disputa pela mesma chave; os dois preservam `pnpm install --frozen-lockfile`. As actions de GitHub Pages são fixadas nas SHAs oficiais de `configure-pages@v6`, `upload-pages-artifact@v5` e `deploy-pages@v5`, que usam a linha Node 24.
 
 Não faça commit, push, reset, rebase ou operações destrutivas de Git sem solicitação explícita.
 

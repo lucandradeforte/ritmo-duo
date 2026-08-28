@@ -5,6 +5,7 @@ import { defineConfig } from 'vitest/config';
 
 const repositoryName = process.env.GITHUB_REPOSITORY?.split('/')[1];
 const base = process.env.GITHUB_ACTIONS && repositoryName ? `/${repositoryName}/` : '/';
+const isE2ETest = process.env.RITMO_DUO_E2E === 'true';
 
 export default defineConfig({
   base,
@@ -46,7 +47,12 @@ export default defineConfig({
           }
         ]
       },
-      devOptions: { enabled: true }
+      devOptions: {
+        enabled: !isE2ETest,
+        // The development precache is intentionally empty; vite-plugin-pwa creates a placeholder
+        // instead of passing production asset globs to Workbox.
+        suppressWarnings: true,
+      }
     })
   ],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },

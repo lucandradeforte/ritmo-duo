@@ -21,6 +21,7 @@ export default defineConfig({
       ...process.env,
       GITHUB_ACTIONS: '',
       GITHUB_REPOSITORY: '',
+      RITMO_DUO_E2E: 'true',
     },
   },
   projects: [
