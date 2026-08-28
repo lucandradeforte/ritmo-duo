@@ -41,7 +41,7 @@ As skills para evolução do projeto estão em [skills/](skills/). Elas são a f
 
 ## Requisitos
 
-- Node.js 22.
+- Node.js 24.20.0 LTS (a versão exata está em `.nvmrc`).
 - pnpm 11.19.0; o projeto declara essa versão no package manager e o CI usa lockfile congelado.
 
 ## Execução local

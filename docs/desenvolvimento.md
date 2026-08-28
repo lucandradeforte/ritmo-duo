@@ -6,7 +6,7 @@ Para entender a aplicação antes de alterar código, leia primeiro [Arquitetura
 
 ## Pré-requisitos
 
-- Node.js 22.22.2 ou mais recente dentro da linha 22.
+- Node.js 24.20.0 ou mais recente dentro da linha 24.
 - pnpm 11.19.0, conforme declarado em **package.json**.
 - Um navegador moderno para desenvolvimento local.
 
@@ -163,7 +163,7 @@ Os relógios do treino ativo devem ser testados com timers falsos e continuar de
 
 ### Testes E2E
 
-O projeto usa Playwright com Chromium em dois perfis: desktop e mobile. O runner inicia o Vite localmente, mantém o base path raiz para o ambiente de teste e executa o smoke de selecionar perfil e iniciar um treino.
+O projeto usa Playwright com Chromium em dois perfis: desktop e mobile. O runner inicia o Vite localmente, mantém o base path raiz para o ambiente de teste e cobre seleção de perfil, início e retomada de treino, modo dupla, ficha/modal de exercício, layout estreito de progresso e regras automatizadas de acessibilidade com axe.
 
 ```bash
 pnpm exec playwright install chromium
@@ -176,7 +176,7 @@ Em uma máquina Linux recém-configurada, instale também as bibliotecas exigida
 pnpm exec playwright install-deps chromium
 ```
 
-O comando solicita a senha de sudo no terminal. O Chromium é baixado uma única vez para o cache local. No CI, o job **Testes E2E** instala o navegador e suas dependências de sistema antes de executar a mesma suíte. Modal de exercício, pesagem, troca de perfil e retomada após recarregar são os próximos fluxos prioritários.
+O comando solicita a senha de sudo no terminal. O Chromium é baixado uma única vez para o cache local. No CI, o job **Testes E2E** instala o navegador e suas dependências de sistema antes de executar a mesma suíte. Em falhas, o workflow mantém por 14 dias o relatório HTML, traces e screenshots em um artefato `playwright-artifacts-*`.
 
 Os E2E exercitam a aplicação sem registrar service worker: o Playwright define `RITMO_DUO_E2E=true` somente no servidor Vite dele. Isso evita que um cache de desenvolvimento interfira no estado isolado de cada teste. O PWA continua disponível no desenvolvimento manual; para validar cache e instalação, gere a build e use `pnpm run preview` em localhost ou HTTPS.
 

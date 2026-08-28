@@ -17,7 +17,7 @@
 }
 
 .code {
-  color: var(--color-accent);
+  color: var(--color-accent-strong);
   font-size: var(--text-sm);
   font-weight: 800;
   letter-spacing: 0.04em;
