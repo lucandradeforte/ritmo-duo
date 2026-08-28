@@ -10,45 +10,17 @@ import type {
   WorkoutTemplate,
 } from '@/types';
 import { createId } from './id';
-import { getEffectiveCardioTargetSeconds, normalizeProgramWeek } from './training-phase';
+import {
+  getEffectiveCardioTargetSeconds,
+  getEffectiveSetCount,
+  normalizeProgramWeek,
+} from './training-phase';
 
 export interface CreateWorkoutSessionOptions {
   now?: number;
   programWeek?: number;
   includeOptionalThirdSet?: boolean;
 }
-
-const lucasThirdSetExercises = new Set([
-  'goblet-squat-to-bench',
-  'tander-lat-pulldown',
-  'tander-pec-deck',
-  'dumbbell-romanian-deadlift',
-  'dumbbell-chest-press',
-  'single-arm-dumbbell-row',
-]);
-
-const getSetCount = (
-  template: WorkoutTemplate,
-  baseSets: number,
-  exerciseId: string,
-  options: CreateWorkoutSessionOptions,
-): number => {
-  const programWeek = normalizeProgramWeek(options.programWeek ?? 1);
-  if (programWeek === 1) {
-    return 1;
-  }
-
-  if (
-    template.userId === 'lucas' &&
-    programWeek >= 5 &&
-    options.includeOptionalThirdSet &&
-    lucasThirdSetExercises.has(exerciseId)
-  ) {
-    return Math.max(baseSets, 3);
-  }
-
-  return baseSets;
-};
 
 const createSet = (exerciseSessionId: string, setNumber: number): SetSession => ({
   id: `${exerciseSessionId}-set-${setNumber}`,
@@ -67,11 +39,12 @@ const createExerciseSession = (
   options: CreateWorkoutSessionOptions,
 ): ExerciseSession => {
   const exerciseSessionId = createId(`exercise-${prescription.exerciseId}`, options.now);
-  const setCount = getSetCount(
-    template,
+  const setCount = getEffectiveSetCount(
     prescription.sets,
+    template.userId,
     prescription.exerciseId,
-    options,
+    options.programWeek ?? 1,
+    options.includeOptionalThirdSet,
   );
 
   return {

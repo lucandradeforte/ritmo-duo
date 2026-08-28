@@ -46,6 +46,14 @@ export interface UserProfile {
   healthNotes: string[];
 }
 
+export interface WeightEntry {
+  id: string;
+  userId: UserId;
+  weightKg: number;
+  recordedAt: number;
+  createdAt: number;
+}
+
 export interface ExerciseMuscles {
   primary: string[];
   secondary: string[];
@@ -186,23 +194,4 @@ export interface WorkoutPlan {
   phases: TrainingPhase[];
   progressionNotes: string[];
   safetyNotes: string[];
-}
-
-export interface EffortScaleEntry {
-  rir: number;
-  approximateRpe: number;
-  description: string;
-}
-
-export interface TrainingGuidance {
-  effortScale: EffortScaleEntry[];
-  initialLoadProtocol: string[];
-  duoTraining: string[];
-  cardio: Record<UserId, string[]>;
-  loadProgression: {
-    dumbbells: string;
-    barbell: string;
-    multiStation: string;
-    cardio: string;
-  };
 }

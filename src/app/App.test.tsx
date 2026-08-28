@@ -21,6 +21,7 @@ describe.sequential('fluxo principal do aplicativo', () => {
     render(<App />);
 
     expect(await screen.findByRole('heading', { name: 'Quem está treinando?' })).toBeVisible();
+    expect(document.querySelector('img[src="/pwa-icon-v6-192x192.png"]')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Lucas/i }));
 
     expect(await screen.findByText('Olá, Lucas')).toBeVisible();
@@ -44,6 +45,34 @@ describe.sequential('fluxo principal do aplicativo', () => {
       expect(screen.queryByRole('dialog', { name: /Treino A/i })).not.toBeInTheDocument();
       expect(window.location.hash).toBe('#/workouts');
     });
+  });
+
+  it('mostra na ficha as mesmas séries, RIR e cardio que iniciará na fase atual', async () => {
+    render(<App />);
+    fireEvent.click(await screen.findByRole('button', { name: /Lucas/i }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Treinos' }));
+    const firstWorkoutCard = (await screen.findByRole('heading', { name: /Treino A/i })).closest('article');
+    if (!firstWorkoutCard) throw new Error('Card do treino A não encontrado');
+    fireEvent.click(within(firstWorkoutCard).getByRole('button', { name: 'Ver ficha' }));
+
+    const workoutDetail = await screen.findByRole('dialog', { name: /Treino A/i });
+    expect(within(workoutDetail).getAllByText('1 × 8–10 · RIR 3–4 · 90s')).toHaveLength(2);
+    expect(within(workoutDetail).getByText('8 min · RPE 3–4')).toBeVisible();
+
+    fireEvent.click(within(workoutDetail).getByRole('button', {
+      name: 'Ver exemplo de execução de Agachamento goblet para banco',
+    }));
+    const exerciseDetail = await screen.findByRole('dialog', {
+      name: /Agachamento goblet para banco/i,
+    });
+    expect(within(exerciseDetail).getByRole('heading', { name: 'Configuração' })).toBeVisible();
+    fireEvent.click(within(exerciseDetail).getByRole('button', { name: 'Fechar' }));
+    expect(within(workoutDetail).getByText('Exercícios e cardio')).toBeVisible();
+
+    fireEvent.click(within(workoutDetail).getByRole('button', { name: 'Iniciar treino' }));
+
+    expect(await screen.findByText('1 × 8–10 · RIR 3–4')).toBeVisible();
+    expect(screen.getAllByLabelText(/Carga da série/i)).toHaveLength(1);
   });
 
   it('persiste uma série imediatamente e recupera o treino depois de remontar', async () => {
@@ -92,5 +121,21 @@ describe.sequential('fluxo principal do aplicativo', () => {
     const lucasButton = await screen.findByRole('button', { name: /Lucas/i });
     fireEvent.click(lucasButton);
     await waitFor(() => expect(lucasButton).toHaveAttribute('aria-pressed', 'true'));
+  });
+
+  it('registra o peso no progresso e mostra a pesagem mais recente no perfil', async () => {
+    render(<App />);
+    fireEvent.click(await screen.findByRole('button', { name: /Lucas/i }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Progresso' }));
+
+    fireEvent.change(await screen.findByLabelText('Peso em quilogramas'), { target: { value: '109.4' } });
+    fireEvent.change(screen.getByLabelText('Data da pesagem'), { target: { value: '2026-08-20' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Registrar peso' }));
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Pesagem registrada.');
+    expect(screen.getByRole('img', { name: /Evolução do peso: 109,4 kg/i })).toBeVisible();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Perfil' }));
+    expect(await screen.findByText(/24 anos · 183 cm · 109,4 kg/)).toBeVisible();
   });
 });

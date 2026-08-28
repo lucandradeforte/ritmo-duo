@@ -43,6 +43,7 @@ import {
   clearExerciseProgress,
   clearWorkoutHistory,
   completeActiveWorkout,
+  addWeightEntry,
   discardActiveWorkout,
   downloadBackup,
   getActiveWorkout,
@@ -51,6 +52,7 @@ import {
   initializeStorage,
   listExerciseProgress,
   listUserProfiles,
+  listWeightEntries,
   listWorkoutSessions,
   saveActiveWorkout,
   updatePreferences,
@@ -63,6 +65,7 @@ import type {
   ThemePreference,
   UserId,
   UserProfile,
+  WeightEntry,
   WorkoutSession,
   WorkoutTemplate,
   WorkoutFeedback,
@@ -170,6 +173,7 @@ interface LoadState {
   profiles: UserProfile[];
   sessions: WorkoutSession[];
   progress: ExerciseProgressRecord[];
+  weightEntries: WeightEntry[];
   activeWorkout: ActiveWorkoutState | null;
 }
 
@@ -177,11 +181,12 @@ type PersistenceState = 'idle' | 'saving' | 'error';
 
 const loadAppState = async (): Promise<LoadState> => {
   await initializeStorage();
-  const [preferences, profiles, sessions, progress, activeWorkout] = await Promise.all([
+  const [preferences, profiles, sessions, progress, weightEntries, activeWorkout] = await Promise.all([
     getPreferences(),
     listUserProfiles(),
     listWorkoutSessions(),
     listExerciseProgress(),
+    listWeightEntries(),
     getActiveWorkout(),
   ]);
   return {
@@ -189,6 +194,7 @@ const loadAppState = async (): Promise<LoadState> => {
     profiles: profiles.length > 0 ? profiles : [...seedUsers],
     sessions,
     progress,
+    weightEntries,
     activeWorkout,
   };
 };
@@ -216,6 +222,7 @@ function AppController() {
   const [profiles, setProfiles] = useState<UserProfile[]>([...seedUsers]);
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
   const [progress, setProgress] = useState<ExerciseProgressRecord[]>([]);
+  const [weightEntries, setWeightEntries] = useState<WeightEntry[]>([]);
   const [activeWorkout, setActiveWorkoutState] = useState<ActiveWorkoutState | null>(null);
   const activeWorkoutRef = useRef<ActiveWorkoutState | null>(null);
   const [now, setNow] = useState(0);
@@ -239,6 +246,7 @@ function AppController() {
     setProfiles(next.profiles);
     setSessions(next.sessions);
     setProgress(next.progress);
+    setWeightEntries(next.weightEntries);
     activeWorkoutRef.current = next.activeWorkout;
     setActiveWorkoutState(next.activeWorkout);
     setRecoveryOpen(next.activeWorkout !== null);
@@ -253,6 +261,7 @@ function AppController() {
         setProfiles(next.profiles);
         setSessions(next.sessions);
         setProgress(next.progress);
+        setWeightEntries(next.weightEntries);
         activeWorkoutRef.current = next.activeWorkout;
         setActiveWorkoutState(next.activeWorkout);
         setRecoveryOpen(next.activeWorkout !== null);
@@ -315,6 +324,19 @@ function AppController() {
     () => progress.filter((record) => record.userId === selectedUserId),
     [progress, selectedUserId],
   );
+  const userWeightEntries = useMemo(
+    () =>
+      [...weightEntries]
+        .filter((entry) => entry.userId === selectedUserId)
+        .sort(
+          (left, right) => left.recordedAt - right.recordedAt || left.createdAt - right.createdAt,
+        ),
+    [selectedUserId, weightEntries],
+  );
+  const currentWeightKg = userWeightEntries.at(-1)?.weightKg ?? selectedUser?.weightKg ?? null;
+  const currentUser = selectedUser && currentWeightKg !== null
+    ? { ...selectedUser, weightKg: currentWeightKg }
+    : selectedUser;
 
   const persistActive = useCallback((next: ActiveWorkoutState): Promise<boolean> => {
     activeWorkoutRef.current = next;
@@ -342,6 +364,17 @@ function AppController() {
     setPreferences(next);
     return next;
   }, []);
+
+  const handleAddWeightEntry = useCallback(
+    async (weightKg: number, recordedAt: number) => {
+      if (!selectedUserId) {
+        throw new Error('Selecione um perfil antes de registrar o peso.');
+      }
+      const entry = await addWeightEntry({ userId: selectedUserId, weightKg, recordedAt });
+      setWeightEntries((current) => [...current, entry]);
+    },
+    [selectedUserId],
+  );
 
   const handleSelectProfile = useCallback(
     async (userId: UserId) => {
@@ -515,6 +548,8 @@ function AppController() {
     );
   }
 
+  const currentProgramWeek = calculateProgramWeekFromHistory(sessions, selectedUser.id, now);
+  const includeOptionalThirdSet = isReadyForOptionalVolume(sessions);
   const plan = getWorkoutPlan(selectedUser.id);
   const selectedWorkoutDetail =
     plan.templates.find(
@@ -805,6 +840,8 @@ function AppController() {
                 totalVolumeKg={userSessions.reduce((total, session) => total + calculateSessionVolume(session), 0)}
                 consistencyPercent={Math.min(100, Math.round((userSessions.filter((session) => session.startedAt >= recentStart).length / 12) * 100))}
                 exercises={progressRows}
+                weightEntries={userWeightEntries}
+                onAddWeightEntry={handleAddWeightEntry}
               />
             </RouteFrame>
           }
@@ -814,7 +851,7 @@ function AppController() {
           element={
             <RouteFrame>
               <ProfileScreen
-                user={selectedUser}
+                user={currentUser ?? selectedUser}
                 plan={plan}
                 theme={preferences.theme}
                 soundEnabled={preferences.soundEnabled}
@@ -888,6 +925,9 @@ function AppController() {
       <WorkoutDetail
         open={selectedWorkoutDetail !== null}
         workout={selectedWorkoutDetail}
+        programWeek={currentProgramWeek}
+        includeOptionalThirdSet={includeOptionalThirdSet}
+        online={online}
         onClose={() => void navigate('/workouts', { replace: true })}
         onStart={(workout) => {
           void navigate('/workouts', { replace: true });

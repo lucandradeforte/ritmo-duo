@@ -9,6 +9,7 @@ import type {
   SetSession,
   UserId,
   UserProfile,
+  WeightEntry,
   WorkoutSession,
 } from '@/types';
 import { MAX_PROGRAM_WEEK, MIN_PROGRAM_WEEK } from '@/utils/training-phase';
@@ -236,7 +237,28 @@ const isExerciseProgress = (value: unknown): value is ExerciseProgressRecord => 
   );
 };
 
-const isBackupPayload = (value: unknown): value is BackupPayload => {
+const isWeightEntry = (value: unknown): value is WeightEntry => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    typeof value.id === 'string' &&
+    isUserId(value.userId) &&
+    isFiniteNumber(value.weightKg) &&
+    value.weightKg > 0 &&
+    value.weightKg <= 500 &&
+    isFiniteNumber(value.recordedAt) &&
+    isFiniteNumber(value.createdAt)
+  );
+};
+
+type BackupPayloadBase = Omit<BackupPayload, 'data'> & {
+  storageVersion: number;
+  data: Omit<BackupPayload['data'], 'weightEntries'> & { weightEntries?: unknown };
+};
+
+const hasValidBackupData = (value: unknown): value is BackupPayloadBase => {
   if (!isRecord(value) || !isRecord(value.data)) {
     return false;
   }
@@ -244,7 +266,6 @@ const isBackupPayload = (value: unknown): value is BackupPayload => {
   const { data } = value;
   return (
     value.app === 'ritmo-duo' &&
-    value.storageVersion === STORAGE_VERSION &&
     isFiniteNumber(value.exportedAt) &&
     isUnknownArray(data.users) &&
     data.users.length === 2 &&
@@ -260,15 +281,41 @@ const isBackupPayload = (value: unknown): value is BackupPayload => {
   );
 };
 
+const isBackupPayload = (value: unknown): value is BackupPayload =>
+  hasValidBackupData(value) &&
+  value.storageVersion === STORAGE_VERSION &&
+  isUnknownArray(value.data.weightEntries) &&
+  value.data.weightEntries.every(isWeightEntry);
+
+const normalizeBackup = (value: unknown): BackupPayload | null => {
+  if (isBackupPayload(value)) {
+    return value;
+  }
+
+  if (hasValidBackupData(value) && value.storageVersion === 1) {
+    return {
+      ...value,
+      storageVersion: STORAGE_VERSION,
+      data: {
+        ...value.data,
+        weightEntries: [],
+      },
+    };
+  }
+
+  return null;
+};
+
 export const createBackup = async (exportedAt = Date.now()): Promise<BackupPayload> => {
   const database = await getDatabase();
-  const [users, preferences, workoutSessions, storedActiveWorkout, exerciseProgress] =
+  const [users, preferences, workoutSessions, storedActiveWorkout, exerciseProgress, weightEntries] =
     await Promise.all([
       database.getAll('users'),
       database.get('preferences', 'app'),
       database.getAll('workoutSessions'),
       database.get('activeWorkout', 'current'),
       database.getAll('exerciseProgress'),
+      database.getAll('weightEntries'),
     ]);
 
   if (!preferences) {
@@ -285,6 +332,7 @@ export const createBackup = async (exportedAt = Date.now()): Promise<BackupPaylo
       workoutSessions,
       activeWorkout: storedActiveWorkout?.state ?? null,
       exerciseProgress,
+      weightEntries,
     },
   };
 };
@@ -315,24 +363,25 @@ export const parseBackup = (json: string): BackupPayload => {
     throw new Error('O arquivo selecionado não contém JSON válido.');
   }
 
-  if (!isBackupPayload(parsed)) {
+  const backup = normalizeBackup(parsed);
+  if (!backup) {
     throw new Error('Backup incompatível, incompleto ou de uma versão não suportada.');
   }
 
-  return parsed;
+  return backup;
 };
 
 export const importBackup = async (
   input: string | BackupPayload,
 ): Promise<ImportBackupResult> => {
-  const backup = typeof input === 'string' ? parseBackup(input) : input;
-  if (!isBackupPayload(backup)) {
+  const backup = typeof input === 'string' ? parseBackup(input) : normalizeBackup(input);
+  if (!backup) {
     throw new Error('Backup incompatível, incompleto ou de uma versão não suportada.');
   }
 
   const database = await getDatabase();
   const transaction = database.transaction(
-    ['users', 'preferences', 'workoutSessions', 'activeWorkout', 'exerciseProgress'],
+    ['users', 'preferences', 'workoutSessions', 'activeWorkout', 'exerciseProgress', 'weightEntries'],
     'readwrite',
   );
 
@@ -342,6 +391,7 @@ export const importBackup = async (
     transaction.objectStore('workoutSessions').clear(),
     transaction.objectStore('activeWorkout').clear(),
     transaction.objectStore('exerciseProgress').clear(),
+    transaction.objectStore('weightEntries').clear(),
   ]);
 
   await Promise.all([
@@ -353,6 +403,7 @@ export const importBackup = async (
     ...backup.data.exerciseProgress.map((progress) =>
       transaction.objectStore('exerciseProgress').put(progress),
     ),
+    ...backup.data.weightEntries.map((entry) => transaction.objectStore('weightEntries').put(entry)),
     ...(backup.data.activeWorkout
       ? [
           transaction.objectStore('activeWorkout').put({
@@ -368,6 +419,7 @@ export const importBackup = async (
     users: backup.data.users.length,
     workoutSessions: backup.data.workoutSessions.length,
     exerciseProgress: backup.data.exerciseProgress.length,
+    weightEntries: backup.data.weightEntries.length,
     restoredActiveWorkout: backup.data.activeWorkout !== null,
   };
 };

@@ -15,6 +15,8 @@ export interface DialogSurfaceProps {
   variant?: DialogVariant;
   closeLabel?: string;
   closeOnBackdrop?: boolean;
+  trapFocus?: boolean;
+  suspended?: boolean;
 }
 
 const FOCUSABLE_SELECTOR = [
@@ -36,6 +38,8 @@ export function DialogSurface({
   variant = 'adaptive',
   closeLabel = 'Fechar',
   closeOnBackdrop = true,
+  trapFocus = true,
+  suspended = false,
 }: DialogSurfaceProps) {
   const titleId = useId();
   const descriptionId = useId();
@@ -52,11 +56,21 @@ export function DialogSurface({
       return undefined;
     }
 
-    previousFocusRef.current =
-      document.activeElement instanceof HTMLElement ? document.activeElement : null;
-
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open || !trapFocus) {
+      return undefined;
+    }
+
+    previousFocusRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
 
     const dialog = dialogRef.current;
     const firstFocusable = dialog?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
@@ -96,11 +110,10 @@ export function DialogSurface({
     document.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      document.body.style.overflow = previousOverflow;
       document.removeEventListener('keydown', handleKeyDown);
       previousFocusRef.current?.focus({ preventScroll: true });
     };
-  }, [open]);
+  }, [open, trapFocus]);
 
   if (!open || typeof document === 'undefined') {
     return null;
@@ -112,7 +125,7 @@ export function DialogSurface({
       data-variant={variant}
       role="presentation"
       onClick={(event) => {
-        if (closeOnBackdrop && event.target === event.currentTarget) {
+        if (!suspended && closeOnBackdrop && event.target === event.currentTarget) {
           onClose();
         }
       }}
@@ -122,6 +135,7 @@ export function DialogSurface({
         className={styles.dialog}
         role="dialog"
         aria-modal="true"
+        aria-hidden={suspended || undefined}
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
         data-variant={variant}

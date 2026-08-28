@@ -9,6 +9,15 @@ import type {
 export const MIN_PROGRAM_WEEK = 1;
 export const MAX_PROGRAM_WEEK = 8;
 
+const lucasThirdSetExercises = new Set([
+  'goblet-squat-to-bench',
+  'tander-lat-pulldown',
+  'tander-pec-deck',
+  'dumbbell-romanian-deadlift',
+  'dumbbell-chest-press',
+  'single-arm-dumbbell-row',
+]);
+
 export const normalizeProgramWeek = (programWeek: number): number => {
   if (!Number.isFinite(programWeek)) {
     return MIN_PROGRAM_WEEK;
@@ -36,6 +45,31 @@ export const getEffectiveTargetRir = (
   }
 
   return { ...baseTargetRir };
+};
+
+export const getEffectiveSetCount = (
+  baseSets: number,
+  userId: UserId,
+  exerciseId: string,
+  programWeek: number,
+  includeOptionalThirdSet = false,
+): number => {
+  const week = normalizeProgramWeek(programWeek);
+
+  if (week === 1) {
+    return 1;
+  }
+
+  if (
+    userId === 'lucas' &&
+    week >= 5 &&
+    includeOptionalThirdSet &&
+    lucasThirdSetExercises.has(exerciseId)
+  ) {
+    return Math.max(baseSets, 3);
+  }
+
+  return baseSets;
 };
 
 export const getEffectiveCardioDuration = (

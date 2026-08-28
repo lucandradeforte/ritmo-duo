@@ -236,20 +236,20 @@ Não substituir essas mídias por GIFs externos pesados. Se forem adicionados no
 
 Tema: dark mode prioritário, com superfícies grafite, alto contraste e cores energéticas. Há suporte a light mode, `prefers-color-scheme`, escolha manual e persistência de preferência.
 
-O ícone `v3` comunica o propósito fitness da aplicação:
+O ícone `v6` comunica a identidade do Ritmo Duo:
 
-- Atleta em verde-limão: movimento, constância e progresso.
-- Barra em coral: musculação e força.
-- Fundo grafite: contraste em launcher, navegador e modo instalado.
+- Elo entrelaçado verde-limão (`#B6F43A`): conexão, parceria e progresso contínuo.
+- Fundo preto próximo de `#080A09`: contraste para launcher, navegador e modo instalado.
+- Profundidade discreta em tons próximos de verde: leitura limpa sem efeitos decorativos.
 
 Arquivos relevantes:
 
 - `src/components/brand/BrandMark.tsx`.
-- `public/app-icon-v3-source.png`.
-- `public/apple-touch-icon-v3.png`.
-- `public/pwa-icon-v3-192x192.png`.
-- `public/pwa-icon-v3-512x512.png`.
-- `public/pwa-icon-v3-maskable-512x512.png`.
+- `assets/app-icons/app-icon-v6-source.png`.
+- `public/apple-touch-icon-v6.png`.
+- `public/pwa-icon-v6-192x192.png`.
+- `public/pwa-icon-v6-512x512.png`.
+- `public/pwa-icon-v6-maskable-512x512.png`.
 - `scripts/generate-icons.mjs` para regenerar os ícones.
 
 Em iOS, a atualização do `apple-touch-icon` não é garantida para atalhos já instalados: para receber o novo ícone, remover o atalho antigo e adicioná-lo novamente pela opção “Adicionar à Tela de Início” do Safari.

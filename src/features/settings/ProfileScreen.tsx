@@ -5,6 +5,8 @@ import { ProfileAvatar } from '@/components/ui/ProfileAvatar';
 import { Card } from '@/components/ui/Surface';
 import styles from './ProfileScreen.module.css';
 
+const weightFormatter = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 });
+
 export type ThemePreference = 'system' | 'dark' | 'light';
 
 interface ProfileScreenProps {
@@ -40,7 +42,7 @@ export function ProfileScreen({
     <main className="app-content">
       <header className={styles.profileHeader}>
         <ProfileAvatar name={user.name} tone={user.id === 'lucas' ? 'lime' : 'orange'} size="large" />
-        <div><h1>{user.name}</h1><p>{user.age} anos · {user.heightCm} cm · {user.weightKg} kg</p></div>
+        <div><h1>{user.name}</h1><p>{user.age} anos · {user.heightCm} cm · {weightFormatter.format(user.weightKg)} kg</p></div>
       </header>
 
       <section className={styles.section} aria-labelledby="appearance-heading">
@@ -129,7 +131,7 @@ export function ProfileScreen({
       </section>
 
       <Button fullWidth variant="ghost" leadingIcon={<LogOut />} onClick={onChangeUser}>Trocar usuário</Button>
-      <p className={styles.version}>Ritmo Duo · armazenamento local v1</p>
+      <p className={styles.version}>Ritmo Duo · armazenamento local v2</p>
     </main>
   );
 }

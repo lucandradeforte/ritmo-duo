@@ -44,7 +44,7 @@
   display: grid;
 }
 
-.active span {
+.activeMetadata {
   color: var(--color-text-secondary);
   font-size: var(--text-sm);
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getWorkoutTemplate } from '@/data';
+import { getWorkoutPlan, getWorkoutTemplate } from '@/data';
 import {
   completeActiveWorkoutSet,
   createActiveWorkout,
@@ -49,6 +49,44 @@ describe('criação e atualização de sessão', () => {
     const session = createWorkoutSession(lucasA, { now: 1_000 });
     expect(session.exercises.every((exercise) => exercise.sets.length === 1)).toBe(true);
     expect(session.cardio?.targetDurationSeconds).toBe(480);
+  });
+
+  it('cria a quantidade efetiva de séries para todas as fichas', () => {
+    for (const userId of ['lucas', 'geovanna'] as const) {
+      const plan = getWorkoutPlan(userId);
+
+      for (const template of plan.templates) {
+        for (const programWeek of [1, 2, 3, 5]) {
+          const session = createWorkoutSession(template, {
+            now: 1_000,
+            programWeek,
+            includeOptionalThirdSet: true,
+          });
+          const expectedSetCounts = template.exercises
+            .filter((prescription) => prescription.kind !== 'cardio')
+            .map((prescription) => {
+              if (programWeek === 1) return 1;
+              if (
+                userId === 'lucas' &&
+                programWeek >= 5 &&
+                [
+                  'goblet-squat-to-bench',
+                  'tander-lat-pulldown',
+                  'tander-pec-deck',
+                  'dumbbell-romanian-deadlift',
+                  'dumbbell-chest-press',
+                  'single-arm-dumbbell-row',
+                ].includes(prescription.exerciseId)
+              ) {
+                return 3;
+              }
+              return prescription.sets;
+            });
+
+          expect(session.exercises.map((exercise) => exercise.sets.length)).toEqual(expectedSetCounts);
+        }
+      }
+    }
   });
 
   it('cria modo dupla com históricos independentes e alternância por toque', () => {

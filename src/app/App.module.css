@@ -20,17 +20,36 @@
 
 .brandMark {
   display: grid;
+  position: relative;
   inline-size: 4.5rem;
   block-size: 4.5rem;
   place-items: center;
   border-radius: 1.35rem;
-  box-shadow: 0 0 0 0 rgb(182 244 58 / 30%);
-  animation: pulse 1.6s var(--ease-standard) infinite;
+  background: var(--color-canvas);
+  isolation: isolate;
 }
 
-.brandMark svg {
+.brandMark::after {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  border-radius: inherit;
+  background: rgb(182 244 58 / 28%);
+  content: '';
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loading .brandMark::after {
+  animation: brandMarkPulse 1.6s var(--ease-standard) infinite;
+}
+
+.brandMark img {
+  position: relative;
+  z-index: 1;
   inline-size: 4.5rem;
   block-size: 4.5rem;
+  border-radius: inherit;
 }
 
 .loading p,
@@ -140,14 +159,25 @@
   gap: var(--space-3);
 }
 
-@keyframes pulse {
+@keyframes brandMarkPulse {
+  0% {
+    opacity: 0;
+    transform: scale(1);
+  }
+
   50% {
-    box-shadow: 0 0 0 0.75rem rgb(182 244 58 / 0%);
+    opacity: 0.28;
+    transform: scale(1.36);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .brandMark {
+  .loading .brandMark::after {
     animation: none;
   }
 }

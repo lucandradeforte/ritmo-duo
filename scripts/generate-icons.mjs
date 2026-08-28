@@ -6,7 +6,7 @@ import sharp from 'sharp';
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectDirectory = path.resolve(scriptDirectory, '..');
 const publicDirectory = path.join(projectDirectory, 'public');
-const sourcePath = path.join(publicDirectory, 'app-icon-v3-source.png');
+const sourcePath = path.join(projectDirectory, 'assets', 'app-icons', 'app-icon-v6-source.png');
 const background = { r: 9, g: 11, b: 9, alpha: 1 };
 
 await mkdir(publicDirectory, { recursive: true });
@@ -40,10 +40,10 @@ const renderOpaque = async (size, fileName) => {
 };
 
 await Promise.all([
-  renderTransparent(192, 'pwa-icon-v3-192x192.png'),
-  renderTransparent(512, 'pwa-icon-v3-512x512.png'),
-  renderOpaque(512, 'pwa-icon-v3-maskable-512x512.png'),
-  renderOpaque(180, 'apple-touch-icon-v3.png'),
+  renderTransparent(192, 'pwa-icon-v6-192x192.png'),
+  renderTransparent(512, 'pwa-icon-v6-512x512.png'),
+  renderOpaque(512, 'pwa-icon-v6-maskable-512x512.png'),
+  renderOpaque(180, 'apple-touch-icon-v6.png'),
 ]);
 
 console.log('Icones do Ritmo Duo gerados em public/.');

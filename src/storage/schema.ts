@@ -5,6 +5,7 @@ import type {
   ExerciseProgressRecord,
   UserId,
   UserProfile,
+  WeightEntry,
   WorkoutSession,
   WorkoutSessionStatus,
 } from '@/types';
@@ -51,6 +52,14 @@ export interface RitmoDuoSchema extends DBSchema {
     indexes: {
       'by-user': UserId;
       'by-exercise': string;
+    };
+  };
+  weightEntries: {
+    key: string;
+    value: WeightEntry;
+    indexes: {
+      'by-user': UserId;
+      'by-recorded-at': number;
     };
   };
 }

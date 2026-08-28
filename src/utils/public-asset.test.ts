@@ -9,6 +9,8 @@ describe('resolvePublicAssetPath', () => {
   });
 
   it('normaliza a barra final da base', () => {
-    expect(resolvePublicAssetPath('favicon.svg', '/ritmo-duo')).toBe('/ritmo-duo/favicon.svg');
+    expect(resolvePublicAssetPath('pwa-icon-v6-192x192.png', '/ritmo-duo')).toBe(
+      '/ritmo-duo/pwa-icon-v6-192x192.png',
+    );
   });
 });

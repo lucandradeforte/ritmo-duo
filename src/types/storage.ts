@@ -1,4 +1,4 @@
-import type { UserProfile } from './domain';
+import type { UserProfile, WeightEntry } from './domain';
 import type {
   ActiveWorkoutState,
   ExerciseProgressRecord,
@@ -27,6 +27,7 @@ export interface BackupPayload {
     workoutSessions: WorkoutSession[];
     activeWorkout: ActiveWorkoutState | null;
     exerciseProgress: ExerciseProgressRecord[];
+    weightEntries: WeightEntry[];
   };
 }
 
@@ -34,5 +35,6 @@ export interface ImportBackupResult {
   users: number;
   workoutSessions: number;
   exerciseProgress: number;
+  weightEntries: number;
   restoredActiveWorkout: boolean;
 }

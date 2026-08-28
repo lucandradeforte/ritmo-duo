@@ -140,12 +140,14 @@ export function ActiveWorkoutScreen({
           </div>
           {exercise ? (
             <Button
+              className={styles.executionButton}
+              fullWidth
               size="compact"
               variant="secondary"
               leadingIcon={<CirclePlay aria-hidden="true" />}
               onClick={() => setDetailOpen(true)}
             >
-              Execução
+              Exemplo de execução
             </Button>
           ) : null}
         </section>

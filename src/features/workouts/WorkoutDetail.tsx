@@ -1,5 +1,6 @@
 import {
   Bike,
+  CirclePlay,
   Clock3,
   Dumbbell,
   Footprints,
@@ -8,11 +9,14 @@ import {
   RotateCcw,
   Target,
 } from 'lucide-react';
+import { useState } from 'react';
 import { getExercise } from '@/data';
-import type { CardioPrescription, ExercisePrescription, RepRange, WorkoutTemplate } from '@/types';
+import type { CardioPrescription, Exercise, ExercisePrescription, RepRange, WorkoutTemplate } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { DialogSurface } from '@/components/ui/Modal';
 import { Surface } from '@/components/ui/Surface';
+import { ExerciseDetail } from '@/features/exercises/ExerciseDetail';
+import { getEffectivePrescription, getEffectiveSetCount } from '@/utils';
 import styles from './WorkoutDetail.module.css';
 
 export interface WorkoutDetailProps {
@@ -20,6 +24,9 @@ export interface WorkoutDetailProps {
   workout: WorkoutTemplate | null;
   onClose: () => void;
   onStart: (workout: WorkoutTemplate) => void;
+  programWeek: number;
+  includeOptionalThirdSet: boolean;
+  online: boolean;
   startLabel?: string;
   isStarting?: boolean;
 }
@@ -33,12 +40,15 @@ function getCardioName(prescription: CardioPrescription): string {
   return prescription.modality === 'treadmill' ? 'Caminhada na esteira' : 'Bicicleta ergométrica';
 }
 
-function getPrescriptionSummary(prescription: ExercisePrescription): string {
+function getPrescriptionSummary(
+  prescription: ExercisePrescription,
+  activeSetCount?: number,
+): string {
   switch (prescription.kind) {
     case 'strength':
-      return `${prescription.sets} × ${formatRange(prescription.repetitions)} · RIR ${formatRange(prescription.targetRir)} · ${prescription.restSeconds}s`;
+      return `${activeSetCount ?? prescription.sets} × ${formatRange(prescription.repetitions)} · RIR ${formatRange(prescription.targetRir)} · ${prescription.restSeconds}s`;
     case 'carry':
-      return `${prescription.sets} × ${formatRange(prescription.durationSeconds, 's')} · RPE ${formatRange(prescription.targetRpe)} · ${prescription.restSeconds}s`;
+      return `${activeSetCount ?? prescription.sets} × ${formatRange(prescription.durationSeconds, 's')} · RPE ${formatRange(prescription.targetRpe)} · ${prescription.restSeconds}s`;
     case 'cardio':
       return `${formatRange(prescription.durationMinutes, ' min')} · RPE ${formatRange(prescription.targetRpe)}`;
   }
@@ -56,62 +66,70 @@ function PrescriptionIcon({ prescription }: { prescription: ExercisePrescription
   return <Dumbbell aria-hidden="true" />;
 }
 
-export function WorkoutDetail({
+function WorkoutDetailDialog({
   open,
   workout,
   onClose,
   onStart,
+  programWeek,
+  includeOptionalThirdSet,
+  online,
   startLabel = 'Iniciar treino',
   isStarting = false,
-}: WorkoutDetailProps) {
-  if (!workout) {
-    return null;
-  }
+}: WorkoutDetailProps & { workout: WorkoutTemplate }) {
+  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
 
   const strengthExerciseCount = workout.exercises.filter(
     (prescription) => prescription.kind !== 'cardio',
   ).length;
   const orderedPrescriptions = [...workout.exercises].sort((a, b) => a.order - b.order);
+  const handleClose = () => {
+    setSelectedExercise(null);
+    onClose();
+  };
 
   return (
-    <DialogSurface
-      open={open}
-      onClose={onClose}
-      title={`Treino ${workout.code}`}
-      description={workout.title}
-      variant="adaptive"
-      footer={
-        <Button
-          fullWidth
-          size="large"
-          leadingIcon={<Play aria-hidden="true" />}
-          isLoading={isStarting}
-          loadingLabel="Preparando treino"
-          onClick={() => onStart(workout)}
-        >
-          {startLabel}
-        </Button>
-      }
-    >
-      <div className={styles.content}>
-        <div className={styles.overview} aria-label="Resumo do treino">
-          <span>
-            <Clock3 aria-hidden="true" />
-            {formatRange(workout.estimatedMinutes, ' min')}
-          </span>
-          <span>
-            <Dumbbell aria-hidden="true" />
-            {strengthExerciseCount} exercícios
-          </span>
-        </div>
+    <>
+      <DialogSurface
+        open={open}
+        onClose={handleClose}
+        title={`Treino ${workout.code}`}
+        description={workout.title}
+        variant="adaptive"
+        trapFocus={selectedExercise === null}
+        suspended={selectedExercise !== null}
+        footer={
+          <Button
+            fullWidth
+            size="large"
+            leadingIcon={<Play aria-hidden="true" />}
+            isLoading={isStarting}
+            loadingLabel="Preparando treino"
+            onClick={() => onStart(workout)}
+          >
+            {startLabel}
+          </Button>
+        }
+      >
+        <div className={styles.content}>
+          <div className={styles.overview} aria-label="Resumo do treino">
+            <span>
+              <Clock3 aria-hidden="true" />
+              {formatRange(workout.estimatedMinutes, ' min')}
+            </span>
+            <span>
+              <Dumbbell aria-hidden="true" />
+              {strengthExerciseCount} exercícios
+            </span>
+          </div>
 
-        <div className={styles.focusList} aria-label="Foco do treino">
-          {workout.focus.map((focus) => (
-            <span key={focus}>{focus}</span>
-          ))}
-        </div>
+          <div className={styles.focusList} aria-label="Foco do treino">
+            {workout.focus.map((focus) => (
+              <span key={focus}>{focus}</span>
+            ))}
+          </div>
 
-        <section className={styles.section} aria-labelledby="workout-warmup-title">
+          <section className={styles.section} aria-labelledby="workout-warmup-title">
           <div className={styles.sectionHeading}>
             <div className={styles.headingIcon}>
               <RotateCcw aria-hidden="true" />
@@ -147,9 +165,9 @@ export function WorkoutDetail({
               </ul>
             </div>
           </Surface>
-        </section>
+          </section>
 
-        <section className={styles.section} aria-labelledby="workout-exercises-title">
+          <section className={styles.section} aria-labelledby="workout-exercises-title">
           <div className={styles.sectionHeading}>
             <div className={styles.headingIcon}>
               <Target aria-hidden="true" />
@@ -162,38 +180,69 @@ export function WorkoutDetail({
 
           <ol className={styles.prescriptionList}>
             {orderedPrescriptions.map((prescription) => {
-              const exercise =
-                prescription.kind === 'cardio' ? undefined : getExercise(prescription.exerciseId);
-              const name =
+              const effectivePrescription = getEffectivePrescription(
+                prescription,
+                workout.userId,
+                programWeek,
+              );
+              const activeSetCount =
                 prescription.kind === 'cardio'
-                  ? getCardioName(prescription)
+                  ? undefined
+                  : getEffectiveSetCount(
+                      prescription.sets,
+                      workout.userId,
+                      prescription.exerciseId,
+                      programWeek,
+                      includeOptionalThirdSet,
+                    );
+              const exercise =
+                effectivePrescription.kind === 'cardio'
+                  ? undefined
+                  : getExercise(effectivePrescription.exerciseId);
+              const name =
+                effectivePrescription.kind === 'cardio'
+                  ? getCardioName(effectivePrescription)
                   : (exercise?.name ?? 'Exercício');
               const equipment =
-                prescription.kind === 'cardio'
-                  ? prescription.equipmentLabel
+                effectivePrescription.kind === 'cardio'
+                  ? effectivePrescription.equipmentLabel
                   : (exercise?.equipmentLabel ?? 'Equipamento informado na ficha');
 
               return (
                 <li key={prescription.id} className={styles.prescriptionItem}>
                   <div className={styles.order}>{prescription.order}</div>
-                  <div className={styles.exerciseIcon}>
-                    <PrescriptionIcon prescription={prescription} />
+                  <div className={styles.exerciseActions}>
+                    <div className={styles.exerciseIcon}>
+                      <PrescriptionIcon prescription={effectivePrescription} />
+                    </div>
+                    {exercise ? (
+                      <Button
+                        aria-label={`Ver exemplo de execução de ${name}`}
+                        className={styles.executionPreview}
+                        leadingIcon={<CirclePlay aria-hidden="true" />}
+                        size="icon"
+                        variant="secondary"
+                        onClick={() => setSelectedExercise(exercise)}
+                      >
+                        Ver exemplo de execução de {name}
+                      </Button>
+                    ) : null}
                   </div>
                   <div className={styles.prescriptionCopy}>
                     <strong>{name}</strong>
                     <span>{equipment}</span>
-                    <small>{getPrescriptionSummary(prescription)}</small>
-                    {prescription.userNotes?.length ? (
+                    <small>{getPrescriptionSummary(effectivePrescription, activeSetCount)}</small>
+                    {effectivePrescription.userNotes?.length ? (
                       <ul className={styles.notes}>
-                        {prescription.userNotes.map((note) => (
+                        {effectivePrescription.userNotes.map((note) => (
                           <li key={note}>{note}</li>
                         ))}
                       </ul>
                     ) : null}
-                    {prescription.kind === 'cardio' ? (
+                    {effectivePrescription.kind === 'cardio' ? (
                       <p className={styles.talkTest}>
                         <Gauge aria-hidden="true" />
-                        {prescription.talkTest}
+                        {effectivePrescription.talkTest}
                       </p>
                     ) : null}
                   </div>
@@ -201,8 +250,23 @@ export function WorkoutDetail({
               );
             })}
           </ol>
-        </section>
-      </div>
-    </DialogSurface>
+          </section>
+        </div>
+      </DialogSurface>
+      <ExerciseDetail
+        exercise={selectedExercise}
+        open={open && selectedExercise !== null}
+        online={online}
+        onClose={() => setSelectedExercise(null)}
+      />
+    </>
   );
+}
+
+export function WorkoutDetail(props: WorkoutDetailProps) {
+  if (!props.workout) {
+    return null;
+  }
+
+  return <WorkoutDetailDialog key={props.workout.id} {...props} workout={props.workout} />;
 }

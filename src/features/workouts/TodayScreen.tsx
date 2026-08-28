@@ -42,7 +42,7 @@ export function TodayScreen({
         <Card className={styles.active} tone="timer">
           <div>
             <strong>Treino em andamento</strong>
-            <span>Treino {activeWorkoutCode ?? workout.code} · {activeWorkoutElapsed}</span>
+            <span className={styles.activeMetadata}>Treino {activeWorkoutCode ?? workout.code} · {activeWorkoutElapsed}</span>
           </div>
           <Button variant="timer" trailingIcon={<ChevronRight />} onClick={onContinue}>Continuar</Button>
         </Card>

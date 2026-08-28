@@ -41,9 +41,189 @@
   font-size: var(--text-xs);
 }
 
+.weightProgress,
 .consistency,
 .exerciseProgress {
   margin-block-start: var(--space-8);
+}
+
+.sectionHeading {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  align-items: flex-start;
+  margin-block-end: var(--space-3);
+}
+
+.sectionHeading h2 {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  margin-block-end: var(--space-1);
+  font-size: var(--text-lg);
+}
+
+.sectionHeading h2 svg {
+  inline-size: 1.2rem;
+  block-size: 1.2rem;
+  color: var(--color-accent);
+}
+
+.sectionHeading p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+}
+
+.sectionHeading > strong {
+  flex: 0 0 auto;
+  padding-block-start: var(--space-1);
+  color: var(--color-accent);
+  font-family: var(--font-numeric);
+  font-size: var(--text-lg);
+}
+
+.weightFormCard,
+.weightChartCard {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.weightFormCard + .weightChartCard,
+.weightFormCard + .emptyWeight {
+  margin-block-start: var(--space-3);
+}
+
+.weightForm {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.weightForm label {
+  display: grid;
+  gap: var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+}
+
+.weightForm input {
+  inline-size: 100%;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  outline: none;
+  background: var(--color-canvas-raised);
+  color: var(--color-text);
+  font-family: var(--font-numeric);
+  font-weight: 750;
+}
+
+.weightForm input:focus {
+  border-color: var(--color-accent);
+  box-shadow: var(--focus-ring);
+}
+
+.weightForm button {
+  grid-column: 1 / -1;
+}
+
+.weightFeedback {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+}
+
+.weightSummary {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  align-items: end;
+}
+
+.weightSummary > div {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.weightSummary span {
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+}
+
+.weightSummary strong {
+  font-size: var(--text-sm);
+}
+
+.weightTrend {
+  max-inline-size: 14rem;
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+  text-align: end;
+}
+
+.weightTrend[data-direction='down'] {
+  color: var(--color-success);
+}
+
+.weightTrend[data-direction='up'] {
+  color: var(--color-timer);
+}
+
+.chart {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.chart svg {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  overflow: visible;
+}
+
+.chart line {
+  stroke: var(--color-border);
+  stroke-width: 0.55;
+}
+
+.chart polyline {
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.chart circle {
+  fill: var(--color-accent);
+  stroke: var(--color-surface);
+  stroke-width: 1.2;
+}
+
+.chartLabels {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  color: var(--color-text-tertiary);
+  font-size: var(--text-2xs);
+}
+
+.emptyWeight {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+.emptyWeight svg {
+  flex: 0 0 auto;
+  color: var(--color-accent);
+}
+
+.emptyWeight p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
 }
 
 .consistency > div:first-child {
@@ -108,4 +288,24 @@
 .best strong {
   color: var(--color-accent);
   font-family: var(--font-numeric);
+}
+
+@media (max-width: 370px) {
+  .weightForm {
+    grid-template-columns: 1fr;
+  }
+
+  .weightForm button {
+    grid-column: auto;
+  }
+
+  .weightSummary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .weightTrend {
+    max-inline-size: none;
+    text-align: start;
+  }
 }

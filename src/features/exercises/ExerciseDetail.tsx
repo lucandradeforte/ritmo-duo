@@ -21,6 +21,53 @@ function InstructionList({ title, items }: { title: string; items: readonly stri
   );
 }
 
+export function ExerciseDetailContent({ exercise }: { exercise: Exercise }) {
+  return (
+    <div className={styles.content}>
+      {exercise.demonstration ? (
+        <ExerciseMedia key={exercise.id} demonstration={exercise.demonstration} />
+      ) : null}
+      <div className={styles.equipment}>
+        <span>Equipamento</span>
+        <strong>{exercise.equipmentLabel}</strong>
+      </div>
+      <section className={styles.muscles}>
+        <div><span>Principal</span><strong>{exercise.muscles.primary.join(', ')}</strong></div>
+        <div><span>Secundários</span><strong>{exercise.muscles.secondary.join(', ')}</strong></div>
+      </section>
+      <InstructionList title="Configuração" items={exercise.instructions.configuration} />
+      <InstructionList title="Execução" items={exercise.instructions.execution} />
+      <InstructionList title="Pontos técnicos" items={exercise.instructions.technicalPoints} />
+      <InstructionList title="Erros comuns" items={exercise.instructions.commonMistakes} />
+      <section className={styles.section}><h3>Sensação esperada</h3><p>{exercise.instructions.expectedSensation}</p></section>
+      <InstructionList title="Sinais para interromper" items={exercise.instructions.stopSignals} />
+      <section className={styles.alternatives}>
+        <div><span>Mais fácil</span><p>{exercise.instructions.alternatives.easier}</p></div>
+        <div><span>Padrão</span><p>{exercise.instructions.alternatives.standard}</p></div>
+        <div><span>Progressão</span><p>{exercise.instructions.alternatives.progression}</p></div>
+      </section>
+    </div>
+  );
+}
+
+export function ExerciseDetailFooter({
+  exercise,
+  online,
+  onClose,
+}: Pick<ExerciseDetailProps, 'exercise' | 'online' | 'onClose'>) {
+  if (!exercise) return null;
+
+  return exercise.media ? (
+    online ? (
+      <a className={styles.mediaLink} href={exercise.media.url} target="_blank" rel="noreferrer">
+        <ExternalLink aria-hidden="true" /> Ver demonstração — {exercise.media.label}
+      </a>
+    ) : (
+      <div className={styles.offline}><WifiOff aria-hidden="true" /> Referência externa indisponível. A demonstração acima funciona offline.</div>
+    )
+  ) : <Button fullWidth variant="secondary" onClick={onClose}>Entendi</Button>;
+}
+
 export function ExerciseDetail({ exercise, open, online, onClose }: ExerciseDetailProps) {
   if (!exercise) return null;
 
@@ -30,42 +77,9 @@ export function ExerciseDetail({ exercise, open, online, onClose }: ExerciseDeta
       onClose={onClose}
       title={exercise.name}
       description={exercise.englishName}
-      footer={
-        exercise.media ? (
-          online ? (
-            <a className={styles.mediaLink} href={exercise.media.url} target="_blank" rel="noreferrer">
-              <ExternalLink aria-hidden="true" /> Ver demonstração — {exercise.media.label}
-            </a>
-          ) : (
-            <div className={styles.offline}><WifiOff aria-hidden="true" /> Referência externa indisponível. A demonstração acima funciona offline.</div>
-          )
-        ) : <Button fullWidth variant="secondary" onClick={onClose}>Entendi</Button>
-      }
+      footer={<ExerciseDetailFooter exercise={exercise} online={online} onClose={onClose} />}
     >
-      <div className={styles.content}>
-        {exercise.demonstration ? (
-          <ExerciseMedia key={exercise.id} demonstration={exercise.demonstration} />
-        ) : null}
-        <div className={styles.equipment}>
-          <span>Equipamento</span>
-          <strong>{exercise.equipmentLabel}</strong>
-        </div>
-        <section className={styles.muscles}>
-          <div><span>Principal</span><strong>{exercise.muscles.primary.join(', ')}</strong></div>
-          <div><span>Secundários</span><strong>{exercise.muscles.secondary.join(', ')}</strong></div>
-        </section>
-        <InstructionList title="Configuração" items={exercise.instructions.configuration} />
-        <InstructionList title="Execução" items={exercise.instructions.execution} />
-        <InstructionList title="Pontos técnicos" items={exercise.instructions.technicalPoints} />
-        <InstructionList title="Erros comuns" items={exercise.instructions.commonMistakes} />
-        <section className={styles.section}><h3>Sensação esperada</h3><p>{exercise.instructions.expectedSensation}</p></section>
-        <InstructionList title="Sinais para interromper" items={exercise.instructions.stopSignals} />
-        <section className={styles.alternatives}>
-          <div><span>Mais fácil</span><p>{exercise.instructions.alternatives.easier}</p></div>
-          <div><span>Padrão</span><p>{exercise.instructions.alternatives.standard}</p></div>
-          <div><span>Progressão</span><p>{exercise.instructions.alternatives.progression}</p></div>
-        </section>
-      </div>
+      <ExerciseDetailContent exercise={exercise} />
     </BottomSheet>
   );
 }

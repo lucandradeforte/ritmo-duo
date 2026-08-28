@@ -3,6 +3,7 @@ import type { CardioPrescription, StrengthPrescription } from '@/types';
 import {
   getEffectiveCardioDuration,
   getEffectivePrescription,
+  getEffectiveSetCount,
   getEffectiveTargetRir,
   normalizeProgramWeek,
 } from './training-phase';
@@ -40,6 +41,13 @@ describe('regras efetivas da fase', () => {
   it('mantém ambos longe da falha nas semanas 1 e 2', () => {
     expect(getEffectiveTargetRir(strength.targetRir, 'lucas', 1)).toEqual({ min: 3, max: 4 });
     expect(getEffectiveTargetRir(strength.targetRir, 'geovanna', 2)).toEqual({ min: 3, max: 4 });
+  });
+
+  it('ajusta séries pela fase e pela progressão opcional de Lucas', () => {
+    expect(getEffectiveSetCount(2, 'geovanna', 'goblet-squat-to-bench', 1)).toBe(1);
+    expect(getEffectiveSetCount(2, 'lucas', 'goblet-squat-to-bench', 2)).toBe(2);
+    expect(getEffectiveSetCount(2, 'lucas', 'goblet-squat-to-bench', 5, true)).toBe(3);
+    expect(getEffectiveSetCount(2, 'lucas', 'standing-calf-raise', 5, true)).toBe(2);
   });
 
   it('aplica o RIR-base nas semanas 3 e 4 e individualiza semanas 5 a 8', () => {

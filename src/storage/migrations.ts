@@ -1,7 +1,7 @@
 import type { IDBPDatabase } from 'idb';
 import type { RitmoDuoSchema } from './schema';
 
-export const STORAGE_VERSION = 1;
+export const STORAGE_VERSION = 2;
 export const DATABASE_NAME = 'ritmo-duo';
 
 const migrateToVersion1 = (database: IDBPDatabase<RitmoDuoSchema>): void => {
@@ -21,11 +21,20 @@ const migrateToVersion1 = (database: IDBPDatabase<RitmoDuoSchema>): void => {
   progress.createIndex('by-exercise', 'exerciseId');
 };
 
+const migrateToVersion2 = (database: IDBPDatabase<RitmoDuoSchema>): void => {
+  const entries = database.createObjectStore('weightEntries', { keyPath: 'id' });
+  entries.createIndex('by-user', 'userId');
+  entries.createIndex('by-recorded-at', 'recordedAt');
+};
+
 export const applyMigrations = (
   database: IDBPDatabase<RitmoDuoSchema>,
   oldVersion: number,
 ): void => {
   if (oldVersion < 1) {
     migrateToVersion1(database);
+  }
+  if (oldVersion < 2) {
+    migrateToVersion2(database);
   }
 };

@@ -20,6 +20,7 @@ As skills para evolução do projeto estão em [skills/](skills/). Elas são a f
 - Cronômetro de descanso calculado por timestamps reais.
 - Modo dupla com alternância rápida entre os dois perfis.
 - Histórico, volume, consistência, recordes e sugestões de progressão.
+- Registro de peso corporal por data, gráfico de evolução e perfil sincronizado com a pesagem mais recente.
 - Cardio em esteira ou bicicleta com duração, intensidade e RPE.
 - Instruções técnicas e alternativas de cada exercício disponíveis offline.
 - Doze demonstrações animadas locais, com poster estático e controle de pausa.
@@ -74,13 +75,13 @@ pnpm run preview
 
 O build de produção é gerado em `dist/`.
 
-Para recriar os ícones do aplicativo após alterar `public/app-icon-v3-source.png`:
+Para recriar os ícones do aplicativo após alterar `assets/app-icons/app-icon-v6-source.png`:
 
 ```bash
 pnpm run assets
 ```
 
-O ícone reúne uma atleta em movimento e uma barra: uma referência direta a treino, força, constância e progresso. O verde-limão e o coral preservam o contraste energético do Ritmo Duo.
+O ícone reúne um elo entrelaçado verde-limão sobre fundo preto: uma referência a conexão, parceria e progresso contínuo, alinhada ao destaque principal do Ritmo Duo e com alto contraste para o launcher e a tela inicial.
 
 ## GitHub Pages
 
@@ -149,7 +150,7 @@ Vibração, Wake Lock e prompt nativo de instalação usam feature detection. Qu
 
 ## Dados, backup e restauração
 
-O histórico é salvo no IndexedDB do navegador, com schema versionado. Cada mudança importante de uma sessão ativa é persistida imediatamente; não é necessário aguardar o fim do treino.
+O histórico, as pesagens e as preferências são salvos no IndexedDB do navegador, com schema versionado. Cada mudança importante de uma sessão ativa é persistida imediatamente; não é necessário aguardar o fim do treino.
 
 Para trocar de aparelho ou navegador:
 

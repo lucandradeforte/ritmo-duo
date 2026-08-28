@@ -12,6 +12,8 @@ import {
   importBackup,
   initializeStorage,
   listUserProfiles,
+  addWeightEntry,
+  listWeightEntries,
   listWorkoutSessions,
   parseBackup,
   saveActiveWorkout,
@@ -117,18 +119,55 @@ describe.sequential('persistência IndexedDB', () => {
 
   it('exporta, valida e restaura backup versionado', async () => {
     await updatePreferences({ lastUserId: 'lucas', soundEnabled: true }, 40_000);
+    await addWeightEntry({ userId: 'lucas', weightKg: 109.4, recordedAt: 30_000 }, 35_000);
     const backup = await createBackup(50_000);
     const serialized = serializeBackup(backup);
     expect(parseBackup(serialized)).toEqual(backup);
+    expect(backup.data.weightEntries).toHaveLength(1);
 
     await updatePreferences({ lastUserId: 'geovanna', soundEnabled: false }, 60_000);
     const result = await importBackup(serialized);
 
     expect(result.users).toBe(2);
+    expect(result.weightEntries).toBe(1);
     await expect(getPreferences()).resolves.toMatchObject({
       lastUserId: 'lucas',
       soundEnabled: true,
       updatedAt: 40_000,
+    });
+    await expect(listWeightEntries('lucas')).resolves.toMatchObject([
+      { weightKg: 109.4, recordedAt: 30_000 },
+    ]);
+  });
+
+  it('mantém pesagens separadas e ordenadas pela data da medição', async () => {
+    await addWeightEntry({ userId: 'lucas', weightKg: 110, recordedAt: 30_000 }, 40_000);
+    await addWeightEntry({ userId: 'lucas', weightKg: 109.5, recordedAt: 10_000 }, 50_000);
+    await addWeightEntry({ userId: 'geovanna', weightKg: 70, recordedAt: 20_000 }, 60_000);
+
+    await expect(listWeightEntries('lucas')).resolves.toMatchObject([
+      { weightKg: 109.5, recordedAt: 10_000 },
+      { weightKg: 110, recordedAt: 30_000 },
+    ]);
+    await expect(listWeightEntries('geovanna')).resolves.toMatchObject([
+      { weightKg: 70, recordedAt: 20_000 },
+    ]);
+  });
+
+  it('aceita backup da versão anterior sem histórico de peso', async () => {
+    const backup = await createBackup(70_000);
+    const legacy = JSON.stringify({
+      ...backup,
+      storageVersion: 1,
+      data: {
+        ...backup.data,
+        weightEntries: undefined,
+      },
+    });
+
+    expect(parseBackup(legacy)).toMatchObject({
+      storageVersion: 2,
+      data: { weightEntries: [] },
     });
   });
 

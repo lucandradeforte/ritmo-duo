@@ -83,7 +83,7 @@ scripts/
 | **#/today** | Hoje | Sugestão de sessão, resumo semanal e retomada. |
 | **#/workouts** | Treinos | Fichas A, B e C do perfil atual. |
 | **#/history** | Histórico | Sessões concluídas do perfil atual. |
-| **#/progress** | Progresso | Métricas e cargas por perfil. |
+| **#/progress** | Progresso | Métricas, cargas e histórico de peso por perfil. |
 | **#/profile** | Perfil | Preferências, guia, backup e troca de usuário. |
 | **#/active** | Treino ativo | Registro de sessão sem navegação inferior. |
 
@@ -103,6 +103,7 @@ Os contratos principais vivem em **src/types/domain.ts** e **src/types/session.t
 | ActiveWorkoutState | session | Sessão ativa solo ou dupla, com participantes e descanso. |
 | SetSession e CardioSession | session | Dados registrados durante a sessão. |
 | ExerciseProgressRecord | session | Última e melhor carga/volume por exercício e pessoa. |
+| WeightEntry | domain | Pesagem datada, separada por pessoa e preservada no backup. |
 
 ### Dados estáticos
 
@@ -110,7 +111,6 @@ Os contratos principais vivem em **src/types/domain.ts** e **src/types/session.t
 - **src/data/exercises** contém os 12 exercícios e suas instruções.
 - **src/data/exercise-demonstrations.ts** associa mídia local tipada.
 - **src/data/workout-plans** concentra fichas, aquecimentos, fases, progressão e segurança.
-- **src/data/training-guidance.ts** contém orientação estruturada adicional; não é a fonte de UI principal hoje.
 
 A prescrição não deve ser duplicada em componentes. Uma mudança de ficha deve ser feita na camada de dados e coberta por testes de catálogo ou regra.
 
@@ -174,8 +174,9 @@ O banco IndexedDB chama-se **ritmo-duo** e está na versão definida em **src/st
 | workoutSessions | id; by-user, by-status, by-started-at | histórico. |
 | activeWorkout | current | único treino ativo. |
 | exerciseProgress | id; by-user, by-exercise | última/melhor carga e volume. |
+| weightEntries | id; by-user, by-recorded-at | histórico de peso corporal por perfil. |
 
-**src/storage/database.ts** abre o banco e semeia perfis/preferências. **src/storage/backup.ts** exporta, valida e importa backup. A importação substitui todos os stores de usuário, preferências, sessões, sessão ativa e progresso após validação estrutural.
+**src/storage/database.ts** abre o banco e semeia perfis/preferências. **src/storage/backup.ts** exporta, valida e importa backup. A importação substitui todos os stores de usuário, preferências, sessões, sessão ativa, progresso e pesagens após validação estrutural. Backups da versão anterior continuam importáveis sem histórico de pesagens.
 
 Qualquer mudança de schema exige:
 

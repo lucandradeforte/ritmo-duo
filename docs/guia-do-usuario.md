@@ -46,13 +46,13 @@ Na aba **Hoje**, a sugestão segue a agenda abaixo:
 
 Em outros dias, o aplicativo sugere o próximo código da sequência A → B → C. Sem histórico, a primeira sugestão é A.
 
-Essa é uma sugestão: na aba **Treinos** é possível iniciar qualquer ficha A, B ou C. Use **Ver ficha** para consultar aquecimento, sequência, equipamento, séries, faixa de repetições ou tempo, RIR/RPE, descanso e observações antes de começar.
+Essa é uma sugestão: na aba **Treinos** é possível iniciar qualquer ficha A, B ou C. Use **Ver ficha** para consultar aquecimento, sequência, equipamento, séries, faixa de repetições ou tempo, RIR/RPE, descanso e observações antes de começar. Em cada exercício de musculação, o botão de play abaixo do ícone abre a demonstração em um modal sobre a ficha, sem iniciar a sessão. Ao fechá-lo, você volta à ficha no mesmo ponto de rolagem.
 
 ### Semana do programa
 
 A semana do programa não acompanha o calendário. Ela avança a cada três treinos concluídos por pessoa e volta à semana 1 se houver mais de 14 dias sem treino.
 
-Por isso, a ficha exibida antes do início é uma prévia. A tela de treino ativo aplica as regras da fase vigente, como quantidade de séries, RIR e meta de cardio.
+Por isso, a ficha e a tela de treino ativo exibem as regras da fase vigente, como quantidade de séries, RIR e meta de cardio. Os valores mostrados em **Ver ficha** serão os mesmos criados ao iniciar aquele treino.
 
 ## Iniciar um treino solo
 
@@ -220,8 +220,17 @@ A aba **Progresso** mostra dados apenas do perfil selecionado:
 - volume total;
 - consistência dos últimos 28 dias, comparada a 12 sessões planejadas e limitada a 100%;
 - última e melhor carga registrada por exercício.
+- peso corporal mais recente e sua evolução por data.
 
-Não há gráfico de tendência nem comparação entre Lucas e Geovanna. Use os dados como histórico de referência, não como diagnóstico de saúde.
+### Registrar uma pesagem
+
+1. Abra **Progresso**.
+2. Em **Peso corporal**, informe o peso em quilogramas e a data em que a medição foi feita.
+3. Toque em **Registrar peso**.
+
+O gráfico mostra somente as pesagens do perfil selecionado. Ele mantém a ordem pela data informada, indica a diferença desde o primeiro registro e pode receber medições retroativas. O perfil passa a exibir o peso da pesagem mais recente por data; se ainda não houver uma pesagem registrada, continua mostrando o peso inicial do cadastro.
+
+Use os dados como histórico de referência e motivação, não como diagnóstico de saúde. Não há comparação entre Lucas e Geovanna.
 
 ## Perfil, preferências e guia do programa
 
@@ -245,7 +254,7 @@ Vibração, áudio e Wake Lock são recursos opcionais. O treino pode ser conclu
 2. Em **Dados e backup**, toque em **Exportar backup**.
 3. Salve o arquivo **treino-backup.json** em local seguro.
 
-O arquivo inclui os dois perfis, preferências, histórico, progresso e eventual treino ativo.
+O arquivo inclui os dois perfis, preferências, histórico, progresso, pesagens e eventual treino ativo.
 
 ### Importar
 
@@ -254,7 +263,7 @@ O arquivo inclui os dois perfis, preferências, histórico, progresso e eventual
 3. Selecione um JSON exportado pelo Ritmo Duo.
 4. Leia a confirmação e aceite apenas se realmente quiser substituir os dados locais.
 
-A importação compatível substitui todos os dados do aparelho: perfis, preferências, histórico, progresso e treino ativo. Ela não mescla registros.
+A importação compatível substitui todos os dados do aparelho: perfis, preferências, histórico, progresso, pesagens e treino ativo. Ela não mescla registros. Backups criados antes do histórico de peso continuam compatíveis, mas naturalmente não incluem pesagens.
 
 ### Apagar histórico
 
@@ -315,7 +324,7 @@ Quando houver uma nova versão, o app oferece atualização somente se não exis
 
 ## Referência da ficha atual
 
-As tabelas abaixo resumem a prescrição-base. A fase ativa pode alterar séries, RIR e meta de cardio, portanto confira sempre a tela do treino antes de executar.
+As tabelas abaixo resumem a prescrição-base. A fase ativa pode alterar séries, RIR e meta de cardio; a opção **Ver ficha** já mostra esses valores efetivos antes de iniciar o treino.
 
 | Treino | Lucas | Geovanna |
 | --- | --- | --- |
