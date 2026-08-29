@@ -44,7 +44,9 @@ test('mantém o formulário de peso dentro da viewport em telas estreitas', asyn
   await selectLucas(page);
   await page.getByRole('button', { name: 'Progresso' }).click();
 
+  const weightInput = page.getByLabel('Peso em quilogramas');
   const dateInput = page.getByLabel('Data da pesagem');
+  await expect(weightInput).toBeVisible();
   await expect(dateInput).toBeVisible();
 
   await expect.poll(async () => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
@@ -52,6 +54,26 @@ test('mantém o formulário de peso dentro da viewport em telas estreitas', asyn
   );
   await expect.poll(async () => dateInput.evaluate((input) => input.getBoundingClientRect().right)).toBeLessThanOrEqual(
     await page.evaluate(() => window.innerWidth),
+  );
+  await expect.poll(async () => {
+    const [weightHeight, dateHeight] = await Promise.all([
+      weightInput.evaluate((input) => input.getBoundingClientRect().height),
+      dateInput.evaluate((input) => input.getBoundingClientRect().height),
+    ]);
+    return Math.abs(weightHeight - dateHeight);
+  }).toBeLessThanOrEqual(1);
+});
+
+test('não cria scroll artificial no histórico vazio', async ({ page }) => {
+  await selectLucas(page);
+  await page.getByRole('button', { name: 'Histórico' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Histórico' })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Navegação principal' })).not.toHaveAttribute(
+    'data-extend-safe-area',
+  );
+  await expect.poll(async () => page.evaluate(() => document.documentElement.scrollHeight)).toBe(
+    await page.evaluate(() => document.documentElement.clientHeight),
   );
 });
 

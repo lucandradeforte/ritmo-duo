@@ -32,9 +32,7 @@ describe.sequential('fluxo principal do aplicativo', () => {
     render(<App />);
     fireEvent.click(await screen.findByRole('button', { name: /Geovanna/i }));
     fireEvent.click(await screen.findByRole('button', { name: 'Treinos' }));
-    const firstWorkoutCard = (await screen.findByRole('heading', { name: /Treino A/i })).closest('article');
-    if (!firstWorkoutCard) throw new Error('Card do treino A não encontrado');
-    fireEvent.click(within(firstWorkoutCard).getByRole('button', { name: 'Ver ficha' }));
+    fireEvent.click((await screen.findAllByRole('button', { name: 'Ver ficha' }))[0]!);
 
     expect(await screen.findByRole('dialog', { name: /Treino A/i })).toBeVisible();
     expect(window.location.hash).toContain('/workouts?ficha=');
@@ -51,9 +49,7 @@ describe.sequential('fluxo principal do aplicativo', () => {
     render(<App />);
     fireEvent.click(await screen.findByRole('button', { name: /Lucas/i }));
     fireEvent.click(await screen.findByRole('button', { name: 'Treinos' }));
-    const firstWorkoutCard = (await screen.findByRole('heading', { name: /Treino A/i })).closest('article');
-    if (!firstWorkoutCard) throw new Error('Card do treino A não encontrado');
-    fireEvent.click(within(firstWorkoutCard).getByRole('button', { name: 'Ver ficha' }));
+    fireEvent.click((await screen.findAllByRole('button', { name: 'Ver ficha' }))[0]!);
 
     const workoutDetail = await screen.findByRole('dialog', { name: /Treino A/i });
     expect(within(workoutDetail).getAllByText('1 × 8–10 · RIR 3–4 · 90s')).toHaveLength(2);

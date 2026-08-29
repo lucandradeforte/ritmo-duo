@@ -30,6 +30,7 @@ Use this skill for vite.config.ts, index.html, src/pwa, public assets, exercise 
 
 - Safe areas apply to headers, bottom navigation, modals and fixed actions.
 - Prefer dynamic viewport units with fallback rather than relying only on 100vh.
+- Keep the iOS standalone viewport repair and bottom-navigation visual extension unless a cold launch is physically validated on iPhone; they cover a WebKit safe-area recalculation defect.
 - Keep primary touch targets at least 44 CSS px and numeric input text at least 16 px.
 - Respect prefers-reduced-motion. Exercise media must retain explicit play/pause and poster fallback.
 - Gate optional audio, vibration and Wake Lock with feature detection and preserve visual fallbacks.

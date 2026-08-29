@@ -111,6 +111,7 @@
 .weightForm input {
   inline-size: 100%;
   min-inline-size: 0;
+  block-size: var(--touch-target);
   padding-inline: var(--space-3);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -119,6 +120,22 @@
   color: var(--color-text);
   font-family: var(--font-numeric);
   font-weight: 750;
+}
+
+.weightForm input[type='date'] {
+  max-inline-size: 100%;
+  padding-inline-end: calc(var(--space-3) + 1.5rem);
+}
+
+/* Native date controls reserve their own content width on iOS. Allow that
+ * internal value to shrink with the form while keeping the picker affordance
+ * away from Android's trailing edge. */
+.weightForm input[type='date']::-webkit-date-and-time-value {
+  min-inline-size: 0;
+}
+
+.weightForm input[type='date']::-webkit-calendar-picker-indicator {
+  margin-inline-end: var(--space-1);
 }
 
 .weightForm input:focus {

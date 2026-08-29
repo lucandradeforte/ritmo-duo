@@ -12,6 +12,10 @@ export {
 } from './install';
 export type { InstallBrowser, InstallOutcome, InstallPlatform, PlatformSignals } from './install';
 export { useOnlineStatus } from './useOnlineStatus';
+export {
+  shouldRepairIosStandaloneViewport,
+  useIosStandaloneViewportRepair,
+} from './useIosStandaloneViewportRepair';
 export { usePwaUpdate } from './usePwaUpdate';
 export { supportsWakeLock, useWakeLock } from './useWakeLock';
 export type { UseWakeLockOptions, WakeLockStatus } from './useWakeLock';
