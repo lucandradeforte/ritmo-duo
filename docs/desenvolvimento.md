@@ -38,6 +38,7 @@ Service worker e Wake Lock precisam de localhost ou HTTPS para validação confi
 | pnpm run preview | Serve o build localmente. |
 | pnpm run lint | Executa ESLint sem warnings. |
 | pnpm run test | Executa a suíte Vitest completa. |
+| pnpm run test:coverage | Executa a suíte Vitest com relatório de cobertura. |
 | pnpm run test:watch | Mantém o Vitest em modo observação. |
 | pnpm run assets | Regenera os ícones v6 a partir de assets/app-icons/app-icon-v6-source.png. |
 

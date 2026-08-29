@@ -300,11 +300,24 @@ function AppController() {
         programWeekByUserId,
         includeOptionalThirdSet: isReadyForOptionalVolume(sessions),
       });
-      await persistActive(next);
+      const persisted = await persistActive(next);
+      if (!persisted) {
+        clearActiveWorkout();
+        setToast('Não foi possível salvar o início do treino. Tente novamente.');
+        return;
+      }
       setRecoveryOpen(false);
       void navigate('/active');
     },
-    [getCurrentWorkout, navigate, persistActive, preferences?.soundEnabled, sessions, setRecoveryOpen],
+    [
+      clearActiveWorkout,
+      getCurrentWorkout,
+      navigate,
+      persistActive,
+      preferences?.soundEnabled,
+      sessions,
+      setRecoveryOpen,
+    ],
   );
 
   const discardCurrent = useCallback(async () => {

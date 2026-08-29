@@ -1,15 +1,29 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { closeStorage, deleteStorageDatabase, getActiveWorkout } from '@/storage';
+import type * as Storage from '@/storage';
+import {
+  closeStorage,
+  deleteStorageDatabase,
+  getActiveWorkout,
+  saveActiveWorkout,
+} from '@/storage';
 import { App } from './App';
 
 vi.mock('virtual:pwa-register', () => ({
   registerSW: () => () => Promise.resolve(),
 }));
 
+vi.mock('@/storage', async (importOriginal) => {
+  const storage = await importOriginal<typeof Storage>();
+  return { ...storage, saveActiveWorkout: vi.fn(storage.saveActiveWorkout) };
+});
+
+const mockedSaveActiveWorkout = vi.mocked(saveActiveWorkout);
+
 describe.sequential('fluxo principal do aplicativo', () => {
   beforeEach(async () => {
     window.location.hash = '';
+    mockedSaveActiveWorkout.mockClear();
     await deleteStorageDatabase();
   });
 
@@ -100,6 +114,19 @@ describe.sequential('fluxo principal do aplicativo', () => {
     expect(await screen.findByRole('heading', { name: 'Treino em andamento' })).toBeVisible();
     fireEvent.click(screen.getByRole('button', { name: 'Continuar treino' }));
     expect(await screen.findByLabelText(/Carga da série 1/i)).toHaveValue(10);
+  });
+
+  it('não inicia uma sessão que não foi persistida', async () => {
+    mockedSaveActiveWorkout.mockRejectedValueOnce(new Error('falha simulada'));
+    render(<App />);
+    fireEvent.click(await screen.findByRole('button', { name: /Lucas/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /^Iniciar treino$/i }));
+
+    expect(
+      await screen.findByText('Não foi possível salvar o início do treino. Tente novamente.'),
+    ).toBeVisible();
+    expect(window.location.hash).toBe('#/today');
+    await expect(getActiveWorkout()).resolves.toBeNull();
   });
 
   it('cria modo dupla com sessões independentes e troca o perfil ativo em um toque', async () => {

@@ -15,6 +15,55 @@ const startLucasWorkout = async (page: Page) => {
   await expect(page).toHaveURL(/#\/active$/);
 };
 
+const expectNoHorizontalOverflow = async (page: Page) => {
+  await expect.poll(async () => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+    await page.evaluate(() => window.innerWidth),
+  );
+};
+
+const expectWeightFormWithinCardAndViewport = async (page: Page) => {
+  const weightInput = page.getByLabel('Peso em quilogramas');
+  const dateInput = page.getByLabel('Data da pesagem');
+  const dateControl = dateInput.locator('xpath=..');
+  const submitButton = page.getByRole('button', { name: 'Registrar peso' });
+  const weightCard = weightInput.locator('xpath=ancestor::article[1]');
+
+  await expect(weightCard).toBeVisible();
+  await expect(weightInput).toBeVisible();
+  await expect(dateControl).toBeVisible();
+  await expect(submitButton).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+  await expect.poll(async () => {
+    const viewportWidth = await page.evaluate(() => window.innerWidth);
+    const bounds = await Promise.all(
+      [weightCard, weightInput, dateControl, submitButton].map((locator) =>
+        locator.evaluate((element) => {
+          const { left, right } = element.getBoundingClientRect();
+          return { left, right };
+        }),
+      ),
+    );
+    const cardBounds = bounds[0];
+    if (!cardBounds) return false;
+
+    return bounds.slice(1).every(
+      (controlBounds) =>
+        controlBounds !== undefined &&
+        controlBounds.left >= cardBounds.left &&
+        controlBounds.right <= cardBounds.right &&
+        controlBounds.left >= 0 &&
+        controlBounds.right <= viewportWidth,
+    );
+  }).toBe(true);
+  await expect.poll(async () => {
+    const [weightHeight, dateHeight] = await Promise.all([
+      weightInput.evaluate((input) => input.getBoundingClientRect().height),
+      dateControl.evaluate((control) => control.getBoundingClientRect().height),
+    ]);
+    return Math.abs(weightHeight - dateHeight);
+  }).toBeLessThanOrEqual(1);
+};
+
 test('seleciona um perfil e inicia um treino sem erros no cliente', async ({ page }) => {
   const clientErrors: string[] = [];
   page.on('pageerror', (error) => clientErrors.push(error.message));
@@ -44,31 +93,39 @@ test('mantém o formulário de peso dentro da viewport em telas estreitas', asyn
   await selectLucas(page);
   await page.getByRole('button', { name: 'Progresso' }).click();
 
-  const weightInput = page.getByLabel('Peso em quilogramas');
   const dateInput = page.getByLabel('Data da pesagem');
   const dateControl = dateInput.locator('xpath=..');
-  await expect(weightInput).toBeVisible();
-  await expect(dateInput).toBeVisible();
-
-  await expect.poll(async () => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
-    await page.evaluate(() => window.innerWidth),
-  );
-  await expect.poll(async () => dateInput.evaluate((input) => input.getBoundingClientRect().right)).toBeLessThanOrEqual(
-    await page.evaluate(() => window.innerWidth),
-  );
-  await expect
-    .poll(async () => dateControl.evaluate((control) => control.getBoundingClientRect().right))
-    .toBeLessThanOrEqual(await page.evaluate(() => window.innerWidth));
-  await expect.poll(async () => {
-    const [weightHeight, dateHeight] = await Promise.all([
-      weightInput.evaluate((input) => input.getBoundingClientRect().height),
-      dateControl.evaluate((control) => control.getBoundingClientRect().height),
-    ]);
-    return Math.abs(weightHeight - dateHeight);
-  }).toBeLessThanOrEqual(1);
+  await expectWeightFormWithinCardAndViewport(page);
 
   await dateInput.fill('2026-08-28');
   await expect(dateControl).toContainText('28/08/2026');
+});
+
+test('mantém o card de peso dentro das larguras mobile prioritárias e nos dois temas', async ({ page }) => {
+  const widths = [360, 375, 390, 412, 430];
+
+  for (const colorScheme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme });
+
+    for (const width of widths) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.goto('/');
+
+      const profileSelection = page.getByRole('heading', { name: 'Quem está treinando?' });
+      const todayHeading = page.getByRole('heading', { name: 'Pronto para manter o ritmo?' });
+      await expect(profileSelection.or(todayHeading)).toBeVisible();
+      if (await profileSelection.isVisible()) {
+        await page.getByRole('button', { name: /Lucas/ }).click();
+      }
+
+      await expect(todayHeading).toBeVisible();
+      await expectNoHorizontalOverflow(page);
+
+      await page.getByRole('button', { name: 'Progresso' }).click();
+      await expect(page.getByRole('heading', { name: 'Progresso' })).toBeVisible();
+      await expectWeightFormWithinCardAndViewport(page);
+    }
+  }
 });
 
 test('não cria scroll artificial no histórico vazio', async ({ page }) => {
