@@ -84,7 +84,12 @@ test('não cria scroll artificial no histórico vazio', async ({ page }) => {
   );
 });
 
-test('mantém a rolagem dentro do conteúdo quando o progresso excede a viewport', async ({ page }) => {
+test('mantém a rolagem dentro do conteúdo quando o progresso excede a viewport', async ({ page }, testInfo) => {
+  test.skip(
+    testInfo.project.name !== 'chromium-mobile',
+    'A rolagem só é esperada quando o conteúdo excede uma viewport mobile.',
+  );
+
   await selectLucas(page);
   await page.getByRole('button', { name: 'Progresso' }).click();
 
