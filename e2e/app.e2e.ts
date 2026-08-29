@@ -76,9 +76,6 @@ test('não cria scroll artificial no histórico vazio', async ({ page }) => {
   await page.getByRole('button', { name: 'Histórico' }).click();
 
   await expect(page.getByRole('heading', { name: 'Histórico' })).toBeVisible();
-  await expect(page.getByRole('navigation', { name: 'Navegação principal' })).not.toHaveAttribute(
-    'data-extend-safe-area',
-  );
   await expect.poll(async () => page.evaluate(() => document.documentElement.scrollHeight)).toBe(
     await page.evaluate(() => document.documentElement.clientHeight),
   );

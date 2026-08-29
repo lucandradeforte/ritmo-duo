@@ -266,6 +266,12 @@ p {
   grid-template-rows: minmax(0, 1fr) auto;
 }
 
+/* In a standalone iOS PWA, WebKit can initially report a reduced dynamic
+ * viewport. The classic vh unit spans the installed app viewport consistently. */
+:root[data-ios-standalone] .app-shell {
+  block-size: 100vh;
+}
+
 .app-content {
   inline-size: min(100%, var(--content-max));
   block-size: 100%;

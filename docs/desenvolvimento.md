@@ -147,7 +147,7 @@ Para assets públicos, manifest, service worker, GitHub Pages, Wake Lock, vibra�
 
 Assets carregados em runtime devem respeitar import.meta.env.BASE_URL. Não use caminhos absolutos que funcionem apenas na raiz do domínio.
 
-No iPhone, a PWA instalada pode abrir com o viewport do WebKit temporariamente menor e deixar uma faixa abaixo da navegação. Preserve `useIosStandaloneViewportRepair` e a extensão visual da navegação: ambos são limitados ao modo standalone do iOS e forçam a mesma recalibração que ocorreria após um scroll curto, sem deslocar a tela do usuário. Não aplique essa extensão em Android ou navegadores comuns, pois ela é uma compensação exclusiva do WebKit.
+No iPhone, a PWA instalada pode abrir com o viewport dinâmico do WebKit temporariamente menor e deixar uma faixa abaixo da navegação. `useIosStandaloneViewportRepair` marca somente o modo standalone do iOS; nesse contexto, o shell usa `100vh`, que ocupa de forma estável o viewport do aplicativo instalado. Não reintroduza `window.scrollTo` como correção: ele depende de um scroll do documento e causa o ajuste visual percebido pelo usuário.
 
 ## Testes
 

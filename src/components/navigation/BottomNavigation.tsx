@@ -27,14 +27,12 @@ const NAVIGATION_ITEMS: readonly NavigationItem[] = [
 export interface BottomNavigationProps {
   activeItem: BottomNavigationItemId;
   onItemSelect: (item: BottomNavigationItemId) => void;
-  extendSafeArea?: boolean;
   hidden?: boolean;
 }
 
 export function BottomNavigation({
   activeItem,
   onItemSelect,
-  extendSafeArea = false,
   hidden = false,
 }: BottomNavigationProps) {
   if (hidden) {
@@ -45,7 +43,6 @@ export function BottomNavigation({
     <nav
       className={styles.navigation}
       aria-label="Navegação principal"
-      data-extend-safe-area={extendSafeArea || undefined}
     >
       <div className={styles.inner}>
         {NAVIGATION_ITEMS.map(({ id, label, icon: Icon }) => {

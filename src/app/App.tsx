@@ -32,9 +32,6 @@ import { ProfileSelectScreen } from '@/features/users/ProfileSelectScreen';
 import { TodayScreen } from '@/features/workouts/TodayScreen';
 import {
   PwaStatusCenter,
-  getCurrentInstallPlatform,
-  isRunningStandalone,
-  shouldRepairIosStandaloneViewport,
   unlockFeedbackAudio,
   useIosStandaloneViewportRepair,
   useOnlineStatus,
@@ -149,10 +146,6 @@ const isReadyForOptionalVolume = (sessions: readonly WorkoutSession[]): boolean 
 function RouteFrame({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const extendNavigationSafeArea = shouldRepairIosStandaloneViewport(
-    getCurrentInstallPlatform(),
-    isRunningStandalone(),
-  );
 
   useLayoutEffect(() => {
     const content = document.querySelector<HTMLElement>('.app-shell > .app-content');
@@ -164,7 +157,6 @@ function RouteFrame({ children }: { children: ReactNode }) {
       {children}
       <BottomNavigation
         activeItem={getRouteId(location.pathname)}
-        extendSafeArea={extendNavigationSafeArea}
         onItemSelect={(item) => void navigate(ROUTES[item])}
       />
     </div>

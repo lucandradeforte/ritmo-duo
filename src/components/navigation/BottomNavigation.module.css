@@ -11,17 +11,6 @@
   backdrop-filter: blur(20px) saturate(130%);
 }
 
-/* iOS standalone can briefly expose the home-indicator inset on a cold launch.
- * Keep the visual background continuous without extending the touch targets. */
-.navigation[data-extend-safe-area]::after {
-  position: absolute;
-  inset: 100% 0 auto;
-  block-size: var(--safe-bottom-max);
-  background: var(--navigation-background);
-  content: '';
-  pointer-events: none;
-}
-
 .inner {
   display: grid;
   inline-size: min(100%, var(--content-max));
