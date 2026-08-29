@@ -2,6 +2,7 @@ import { RotateCcw } from 'lucide-react';
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   lazy,
   useState,
   Suspense,
@@ -152,6 +153,12 @@ function RouteFrame({ children }: { children: ReactNode }) {
     getCurrentInstallPlatform(),
     isRunningStandalone(),
   );
+
+  useLayoutEffect(() => {
+    const content = document.querySelector<HTMLElement>('.app-shell > .app-content');
+    if (content) content.scrollTop = 0;
+  }, [location.pathname]);
+
   return (
     <div className="app-shell">
       {children}

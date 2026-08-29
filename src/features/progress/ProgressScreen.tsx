@@ -1,4 +1,4 @@
-import { CalendarCheck2, ChartNoAxesColumnIncreasing, Dumbbell, Scale, Trophy } from 'lucide-react';
+import { CalendarCheck2, ChartNoAxesColumnIncreasing, ChevronDown, Dumbbell, Scale, Trophy } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Surface';
@@ -33,6 +33,12 @@ const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
   year: 'numeric',
 });
 
+const dateInputFormatter = new Intl.DateTimeFormat('pt-BR', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+});
+
 const formatWeight = (weightKg: number): string => weightFormatter.format(weightKg);
 
 const toDateInputValue = (timestamp: number): string => {
@@ -58,6 +64,11 @@ const dateInputToTimestamp = (value: string): number | null => {
   return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day
     ? date.getTime()
     : null;
+};
+
+const formatDateInput = (value: string): string => {
+  const timestamp = dateInputToTimestamp(value);
+  return timestamp === null ? 'Selecione uma data' : dateInputFormatter.format(timestamp);
 };
 
 function WeightChart({ entries }: { entries: readonly WeightEntry[] }) {
@@ -177,12 +188,19 @@ export function ProgressScreen({
             </label>
             <label>
               <span>Data da pesagem</span>
-              <input
-                aria-label="Data da pesagem"
-                type="date"
-                value={recordedDate}
-                onChange={(event) => setRecordedDate(event.target.value)}
-              />
+              <span className={styles.dateControl}>
+                <span className={styles.dateValue} aria-hidden="true">
+                  {formatDateInput(recordedDate)}
+                  <ChevronDown />
+                </span>
+                <input
+                  className={styles.dateInput}
+                  aria-label="Data da pesagem"
+                  type="date"
+                  value={recordedDate}
+                  onChange={(event) => setRecordedDate(event.target.value)}
+                />
+              </span>
             </label>
             <Button fullWidth isLoading={isSavingWeight} loadingLabel="Registrando" type="submit">
               Registrar peso

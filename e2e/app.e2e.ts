@@ -46,6 +46,7 @@ test('mantém o formulário de peso dentro da viewport em telas estreitas', asyn
 
   const weightInput = page.getByLabel('Peso em quilogramas');
   const dateInput = page.getByLabel('Data da pesagem');
+  const dateControl = dateInput.locator('xpath=..');
   await expect(weightInput).toBeVisible();
   await expect(dateInput).toBeVisible();
 
@@ -55,13 +56,19 @@ test('mantém o formulário de peso dentro da viewport em telas estreitas', asyn
   await expect.poll(async () => dateInput.evaluate((input) => input.getBoundingClientRect().right)).toBeLessThanOrEqual(
     await page.evaluate(() => window.innerWidth),
   );
+  await expect
+    .poll(async () => dateControl.evaluate((control) => control.getBoundingClientRect().right))
+    .toBeLessThanOrEqual(await page.evaluate(() => window.innerWidth));
   await expect.poll(async () => {
     const [weightHeight, dateHeight] = await Promise.all([
       weightInput.evaluate((input) => input.getBoundingClientRect().height),
-      dateInput.evaluate((input) => input.getBoundingClientRect().height),
+      dateControl.evaluate((control) => control.getBoundingClientRect().height),
     ]);
     return Math.abs(weightHeight - dateHeight);
   }).toBeLessThanOrEqual(1);
+
+  await dateInput.fill('2026-08-28');
+  await expect(dateControl).toContainText('28/08/2026');
 });
 
 test('não cria scroll artificial no histórico vazio', async ({ page }) => {
@@ -75,6 +82,26 @@ test('não cria scroll artificial no histórico vazio', async ({ page }) => {
   await expect.poll(async () => page.evaluate(() => document.documentElement.scrollHeight)).toBe(
     await page.evaluate(() => document.documentElement.clientHeight),
   );
+});
+
+test('mantém a rolagem dentro do conteúdo quando o progresso excede a viewport', async ({ page }) => {
+  await selectLucas(page);
+  await page.getByRole('button', { name: 'Progresso' }).click();
+
+  const content = page.locator('main.app-content');
+  await expect.poll(async () => content.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(true);
+  await expect.poll(async () => page.evaluate(() => document.documentElement.scrollHeight)).toBe(
+    await page.evaluate(() => document.documentElement.clientHeight),
+  );
+
+  await content.evaluate((element) => {
+    element.scrollTop = element.scrollHeight;
+  });
+  await expect.poll(async () => content.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+
+  await page.getByRole('button', { name: 'Histórico' }).click();
+  await expect(page.getByRole('heading', { name: 'Histórico' })).toBeVisible();
+  await expect.poll(async () => content.evaluate((element) => element.scrollTop)).toBe(0);
 });
 
 test('retoma a série registrada após recarregar o aplicativo', async ({ page }) => {
